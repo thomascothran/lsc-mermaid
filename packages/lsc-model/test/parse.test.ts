@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isBlocking, parseLsc, printExpr, type LscChart } from 'lsc-model';
+import { isBlocking, parseLsc, printExpr, validateLsc, type LscChart } from 'lsc-model';
 
 function model(...lines: string[]): LscChart {
   const result = parseLsc(lines.join('\n'));
@@ -163,6 +163,22 @@ describe('declarations', () => {
       dir: '!',
     });
     expect(printExpr(m.activation!.condition!)).toBe('not done');
+    expect(m.activation?.conditionText).toBe('not done');
+  });
+
+  it('keeps condition text as written for display', () => {
+    const m = model(
+      'lsc-alpha universal',
+      '  instance car',
+      '  var car.state: {idle, busy}',
+      '  activation when car.idle',
+      '  condition car: idle',
+      '  cold condition car:   "stops_at->isEmpty=TRUE"',
+    );
+    expect(m.activation?.conditionText).toBe('car.idle');
+    expect(printExpr(m.activation!.condition!)).toBe('car.state = idle');
+    expect(m.conditions.map((c) => c.text)).toEqual(['idle', 'stops_at->isEmpty=TRUE']);
+    expect(printExpr(m.conditions[0]!.expr)).toBe('car.state = idle');
   });
 
   it('reads defaults cold', () => {
@@ -412,5 +428,33 @@ describe('robustness', () => {
   ])('never throws: %j', (text) => {
     expect(() => parseLsc(text)).not.toThrow();
     expect(parseLsc(text).diagnostics.length).toBeGreaterThan(0);
+  });
+});
+
+describe('firstLine', () => {
+  it('counts lines from firstLine in spans and in messages that cite other lines', () => {
+    const text = [
+      'lsc-alpha universal',
+      '  instance a, b',
+      '  subchart "Done"',
+      '    cold condition a: finished',
+      '    destroy b',
+      '  end',
+      '  create b by a',
+    ].join('\n');
+    const { model, diagnostics } = parseLsc(text, { firstLine: 4 });
+    expect(diagnostics.find((d) => d.code === 'V11')?.span?.start).toMatchObject({
+      line: 4,
+      column: 1,
+      offset: 0,
+    });
+    const v8 = validateLsc(model!).find((d) => d.code === 'V8')!;
+    expect(v8.span?.start.line).toBe(10);
+    expect(v8.message).toContain('line 8');
+  });
+
+  it('counts syntax errors from firstLine', () => {
+    const { diagnostics } = parseLsc('lsc-alpha', { firstLine: 3 });
+    expect(diagnostics[0]?.span?.start.line).toBe(3);
   });
 });

@@ -12,6 +12,7 @@
     "typecheck": "pnpm generate && tsc -b && tsc -p tsconfig.test.json",
     "test": "pnpm generate && vitest run",
     "test:watch": "pnpm generate && vitest",
+    "baselines:update": "pnpm generate && vitest run --project mermaid-lsc --update test/baselines.test.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

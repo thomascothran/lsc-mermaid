@@ -10,7 +10,7 @@ export { printExpr } from './expr.js';
 export { fromJSON, MODEL_VERSION, toJSON } from './json.js';
 export type * from './model.js';
 export { partialOrder, type OrderPoint, type PartialOrder } from './order.js';
-export { parseLsc, type ParseResult } from './parse.js';
+export { parseLsc, type ParseOptions, type ParseResult } from './parse.js';
 export {
   DEFAULT_UNFOLDING_LIMIT,
   locKey,

@@ -41,7 +41,11 @@ import type {
 export class Source {
   private readonly lineStarts: number[] = [0];
 
-  constructor(readonly text: string) {
+  /** `firstLine` is the line number of the text's first line. */
+  constructor(
+    readonly text: string,
+    private readonly firstLine = 1,
+  ) {
     for (let i = 0; i < text.length; i++)
       if (text.charCodeAt(i) === 10) this.lineStarts.push(i + 1);
   }
@@ -54,7 +58,7 @@ export class Source {
       if (this.lineStarts[mid]! <= offset) lo = mid;
       else hi = mid - 1;
     }
-    return { line: lo + 1, column: offset - this.lineStarts[lo]! + 1, offset };
+    return { line: lo + this.firstLine, column: offset - this.lineStarts[lo]! + 1, offset };
   }
 
   span(start: number, end: number): Span {
@@ -217,8 +221,8 @@ export interface BuildResult {
   diagnostics: Diagnostic[];
 }
 
-export function buildModel(root: ast.LscChart, text: string): BuildResult {
-  return new Builder(new Source(text)).build(root);
+export function buildModel(root: ast.LscChart, text: string, firstLine = 1): BuildResult {
+  return new Builder(new Source(text, firstLine)).build(root);
 }
 
 class Builder {
@@ -235,7 +239,7 @@ class Builder {
   private readonly variableSpans: Span[] = [];
   private readonly visibleEvents: EventSpec[] = [];
   private activationMessage?: EventSpec;
-  private activationCondition?: { expr: Expr };
+  private activationCondition?: { expr: Expr; text: string };
   private hasPrechart = false;
 
   // Lifetimes
@@ -458,7 +462,7 @@ class Builder {
       }
     } else if (ast.isActivationWhen(s)) {
       const { text, offset } = this.src.content(s, 'text', /^activation[\t ]+when/);
-      const target = { expr: { kind: 'bool', value: true } as Expr };
+      const target = { expr: { kind: 'bool', value: true } as Expr, text };
       this.activationCondition = target;
       this.expression(text, offset, [], target);
     }
@@ -1039,6 +1043,7 @@ class Builder {
       instances: lts.map((l) => l.id),
       sharedBy: sorted(lts).map((l) => l.id),
       expr: { kind: 'bool', value: true },
+      text,
       temp,
       locations: [],
       span,
@@ -1053,7 +1058,7 @@ class Builder {
     text: string,
     offset: number,
     instances: string[],
-    target: { expr: Expr },
+    target: { expr: Expr; text: string },
   ): void {
     if (text === '') {
       this.error('syntax', 'Expected a condition after `:`.', this.src.span(offset, offset));
@@ -1069,6 +1074,7 @@ class Builder {
         return;
       }
       target.expr = { kind: 'text', text: text.slice(1, -1) };
+      target.text = text.slice(1, -1);
       return;
     }
     const { expr, issue } = parseExpr(text);
@@ -1565,7 +1571,10 @@ class Emitter {
     if (f.accDescr !== undefined) chart.accDescr = f.accDescr;
     if (f.activationMessage || f.activationCondition) {
       chart.activation = {};
-      if (f.activationCondition) chart.activation.condition = f.activationCondition.expr;
+      if (f.activationCondition) {
+        chart.activation.condition = f.activationCondition.expr;
+        chart.activation.conditionText = f.activationCondition.text;
+      }
       if (f.activationMessage) chart.activation.message = f.activationMessage;
     }
     if (prechartRegion) chart.prechart = prechartRegion;

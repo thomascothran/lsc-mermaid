@@ -1,5 +1,6 @@
-import type { Diagnostic, LscChart } from 'lsc-model';
+import { isBlocking, type Diagnostic, type LscChart } from 'lsc-model';
 import { lscConfig, type LscConfig } from './config.js';
+import { describeChart } from './describe.js';
 import { sanitize, type DiagramDb } from './mermaid-adapter.js';
 
 /**
@@ -11,6 +12,7 @@ export class LscDb implements DiagramDb {
   readonly preserveCommentsWhenParsing = true;
 
   model: LscChart | undefined;
+  /** Every diagnostic. Lines, here and in the model, count the front matter. */
   diagnostics: Diagnostic[] = [];
   frontmatterLineOffset = 0;
 
@@ -55,7 +57,16 @@ export class LscDb implements DiagramDb {
     this.accDescription = sanitize(description);
   }
 
+  /** The chart's `accDescr`, or a description generated from the model. */
   getAccDescription(): string {
-    return this.accDescription;
+    if (this.accDescription !== '' || !this.model) return this.accDescription;
+    return describeChart(this.model);
+  }
+
+  /** The diagnostics the chart marks: warnings and errors that don't stop rendering, in line order. */
+  displayedDiagnostics(): Diagnostic[] {
+    return this.diagnostics
+      .filter((d) => d.severity !== 'info' && !isBlocking(d))
+      .sort((a, b) => (a.span?.start.offset ?? -1) - (b.span?.start.offset ?? -1));
   }
 }

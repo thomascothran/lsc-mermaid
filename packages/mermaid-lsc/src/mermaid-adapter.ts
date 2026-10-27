@@ -62,11 +62,13 @@ export function sanitize(text: string): string {
  */
 export function configureSvgSize(
   svg: SVGSVGElement,
-  width: number,
-  height: number,
+  viewBox: { x: number; y: number; width: number; height: number },
   useMaxWidth: boolean,
 ): void {
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  const round = (v: number) => Math.round(v * 100) / 100;
+  const width = round(viewBox.width);
+  const height = round(viewBox.height);
+  svg.setAttribute('viewBox', `${round(viewBox.x)} ${round(viewBox.y)} ${width} ${height}`);
   if (useMaxWidth) {
     svg.setAttribute('width', '100%');
     svg.removeAttribute('height');

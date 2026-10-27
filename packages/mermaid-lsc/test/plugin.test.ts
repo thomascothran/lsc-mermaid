@@ -39,7 +39,7 @@ describe('mermaid integration', () => {
     expect(svg).toContain('aria-roledescription="liveSequenceChart"');
     expect(svg).toMatch(/<title[^>]*>Departure chart<\/title>/);
     expect(svg).toMatch(/<desc[^>]*>Car and handler agree to depart<\/desc>/);
-    expect(svg).toContain('max-width: 400px');
+    expect(svg).toMatch(/max-width: [\d.]+px/);
   });
 
   it('accepts front matter and init directives', async () => {
@@ -59,7 +59,8 @@ describe('mermaid integration', () => {
     mermaid.initialize({ startOnLoad: false, lsc: { useMaxWidth: false } } as never);
     try {
       const { svg } = await mermaid.render('lsc-site-config', 'lsc-alpha universal');
-      expect(svg).toContain('width="400"');
+      expect(svg).toMatch(/<svg[^>]* width="[\d.]+" [^>]*height="[\d.]+"/);
+      expect(svg).not.toContain('max-width');
     } finally {
       mermaid.initialize({ startOnLoad: false });
     }
@@ -78,7 +79,64 @@ describe('mermaid integration', () => {
       'lsc-alpha universal',
     ];
     const { svg } = await mermaid.render('lsc-fm-config', text.join('\n'));
-    expect(svg).toContain('width="400"');
+    expect(svg).not.toContain('max-width');
+  });
+
+  it('generates a description when the chart has no accDescr', async () => {
+    const { svg } = await mermaid.render(
+      'lsc-generated-desc',
+      [
+        'lsc-alpha universal',
+        '  instance cruiser, car, carHandler',
+        '  activation on env ->> car: setDest',
+        '  car ->> carHandler: departReq',
+        '  carHandler ->> car: departAck',
+      ].join('\n'),
+    );
+    expect(svg).toMatch(
+      /<desc[^>]*>Universal chart, 3 instances, 2 messages, activated by setDest<\/desc>/,
+    );
+  });
+
+  it('marks warnings, including those found by validateLsc', async () => {
+    // V11 comes from parsing and V8 from validateLsc. Lines count the front matter, also
+    // where a message cites another line.
+    const text = [
+      '---',
+      'title: t',
+      '---',
+      'lsc-alpha universal',
+      '  instance a, b',
+      '  subchart "Done"',
+      '    cold condition a: finished',
+      '    destroy b',
+      '  end',
+      '  create b by a',
+    ].join('\n');
+    const { svg } = await mermaid.render('lsc-diags', text);
+    expect(svg.match(/class="lsc-diag-marker/g)).toHaveLength(2);
+    expect(svg).toMatch(/1\. line 4 · V11 warning/);
+    expect(svg).toMatch(/2\. line 10 · V8 warning: [\s\S]*not destroyed on line[\s\S]{0,120}8\./);
+  });
+
+  it('hides diagnostics with showDiagnostics off', async () => {
+    mermaid.initialize({ startOnLoad: false, lsc: { showDiagnostics: false } } as never);
+    try {
+      const { svg } = await mermaid.render('lsc-no-diags', 'lsc-alpha universal\n  a ->> b: m');
+      expect(svg).not.toContain('class="lsc-diag');
+    } finally {
+      mermaid.initialize({ startOnLoad: false });
+    }
+  });
+
+  it('applies lsc theme variables', async () => {
+    mermaid.initialize({ startOnLoad: false, themeVariables: { lscHotColor: '#b03030' } });
+    try {
+      const { svg } = await mermaid.render('lsc-theme', 'lsc-alpha universal\n  a ->> b: m');
+      expect(svg).toMatch(/\.lsc-hot\{stroke:#b03030;/);
+    } finally {
+      mermaid.initialize({ startOnLoad: false });
+    }
   });
 
   it('keeps state separate between renders', async () => {

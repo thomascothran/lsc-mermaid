@@ -33,8 +33,8 @@ export interface LscChart {
   variables: Variable[];
   /** vis_events(m) beyond the events drawn in the chart. */
   visibleEvents: EventSpec[];
-  /** ac(m). The activation message is cold. */
-  activation?: { condition?: Expr; message?: EventSpec };
+  /** ac(m). The activation message is cold. `conditionText` is the condition as written. */
+  activation?: { condition?: Expr; conditionText?: string; message?: EventSpec };
   /** pch(m). */
   prechart?: Region;
   body: Region;
@@ -136,6 +136,8 @@ export interface Condition {
   /** Lifetimes the condition synchronises, in column order. Guards: the block's lifetimes alive at entry. */
   sharedBy: string[];
   expr: Expr;
+  /** The condition as written, for display; a quoted condition without its quotes. */
+  text: string;
   temp: Temp;
   locations: LocRef[];
   /** The condition statement, or the `if` line of a guard. */

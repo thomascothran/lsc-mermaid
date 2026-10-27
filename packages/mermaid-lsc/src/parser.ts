@@ -1,4 +1,4 @@
-import { isBlocking, parseLsc, type Diagnostic } from 'lsc-model';
+import { isBlocking, parseLsc, validateLsc, type Diagnostic } from 'lsc-model';
 import { LscDb } from './db.js';
 import type { DiagramDb } from './mermaid-adapter.js';
 
@@ -15,12 +15,6 @@ function formatDiagnostic(d: Diagnostic): string {
   return `${d.severity === 'error' ? 'Parse error' : 'Warning'}${where}: ${d.message}`;
 }
 
-function withLineOffset(d: Diagnostic, offset: number): Diagnostic {
-  if (!d.span || offset === 0) return d;
-  const shift = (p: typeof d.span.start) => ({ ...p, line: p.line + offset });
-  return { ...d, span: { start: shift(d.span.start), end: shift(d.span.end) } };
-}
-
 export const parser = {
   // Mermaid assigns the fresh db here before calling `parse`.
   parser: { yy: undefined as unknown as DiagramDb },
@@ -30,8 +24,14 @@ export const parser = {
     if (!(db instanceof LscDb)) {
       throw new Error('mermaid-lsc: parser.parser.yy is not an LscDb');
     }
-    const { model, diagnostics } = parseLsc(text);
-    db.diagnostics = diagnostics.map((d) => withLineOffset(d, db.frontmatterLineOffset));
+    // Mermaid strips the front matter; count its lines so positions match the whole text.
+    const { model, diagnostics } = parseLsc(text, { firstLine: db.frontmatterLineOffset + 1 });
+    // The rules checked on unfoldings and the partial order cost more, so they run only when
+    // the chart shows their results.
+    db.diagnostics =
+      model && db.getConfig().showDiagnostics
+        ? [...diagnostics, ...validateLsc(model)]
+        : diagnostics;
     // Only syntax errors and the rules marked ✱ in the proposal stop rendering.
     if (!model) {
       throw new LscParseError(db.diagnostics.filter(isBlocking));

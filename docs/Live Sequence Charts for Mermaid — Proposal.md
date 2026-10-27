@@ -702,26 +702,28 @@ The dashed pattern serves several purposes besides temperature, and dotted coreg
 
 - **Columns.** One per instance, in declaration order, then in order of first appearance. All lifetimes of an instance share its column. A subchart-local instance gets its own column, but its line is drawn only inside its subchart.
 - **Head boxes.** Head boxes sit inside the body frame at the top (Figs. 2, 9). When there is a pre-chart, they sit inside the pre-chart hexagon instead (Fig. 4).
-- **Rows.** One per statement, in text order. A one-line message is drawn horizontally on its row. A split message is drawn as a slanted arrow from its `send` row to its `receive` row. A `simultaneous` region shares one row; receipts of its split sends are drawn on their own rows. Coregion events take consecutive rows, with a dotted line beside the instance.
-- **Header tab.** Top-left: "LSC: title", or "Subchart: title" for a standalone subchart. Then "AC: expr" for an activation condition, then an optional "visible:" line listing visible events.
+- **Rows.** One per statement, in text order. A one-line message is drawn horizontally on its row. A split message is drawn as a slanted arrow from its `send` row to its `receive` row, labelled just above the start of the line, or further along it when that place is taken. A `simultaneous` region shares one row; receipts of its split sends are drawn on their own rows. A message whose send or receipt shares a location with a condition starts or ends at the hexagon's edge. Coregion events take consecutive rows, with a dotted line beside the instance.
+- **Line ends.** A lifetime's last location is always cold (p. 56), so the line below it carries no meaning of its own: it is drawn in the style of the segment above it. It runs to the bottom of the frame, ends at the X of a destroyed lifetime, or ends at its subchart's frame for a subchart-local instance.
+- **Header tab.** Top-left: "LSC: title", or "Subchart: title" for a standalone subchart. Then "AC: expr" for an activation condition, then an optional "visible:" line listing visible events, one per line. The tab is drawn only when it has something to show; a standalone subchart always has one. It moves sideways when the dashed lines of the activation message would cross it.
 - **Activation message.** A dashed arrow entering the frame from outside, with the receiver's line drawn dashed above the frame (Fig. 2). When the sender is a named instance, its line also extends dashed above the frame and the arrow runs between the two extensions.
-- **Environment.** Messages to or from `env` end at the nearer frame edge (Figs. 9–10).
+- **Environment.** Messages to or from `env` end at the nearer frame edge (Figs. 9–10): the left edge for instances in the left half of the columns, otherwise the right. In the pre-chart, the edge is the hexagon's slanted side.
 - **Shared conditions.** One hexagon from the leftmost to the rightmost sharer. The lines of any instances between them that do not share it are drawn over the hexagon.
-- **Subcharts.** A frame over the participating columns, with a tab "Subchart: name" and the multiplicity (`*`, `3`, `n`) at the tab's right. Lines of non-participating instances are not drawn inside the frame (p. 63). A condition that opens a subchart is drawn across the frame's top border, attached from inside (p. 60). Barriers that have no condition are not drawn; the frame edges show them.
+- **Subcharts.** A frame over the participating columns, with a tab "Subchart: name" and the multiplicity (`*`, `3`, `n`) at the tab's right. Lines of non-participating instances are not drawn inside the frame (p. 63). A condition that opens a subchart is drawn across the frame's top border, attached from inside (p. 60). Like an `if` guard, it is drawn over the instances written in it, although it synchronises all the block's lifetimes alive at entry (Fig. 10). Barriers that have no condition are not drawn; the frame edges show them. The head boxes of subchart-local instances sit just inside the top of the frame; an opening condition of such a subchart is drawn below them instead of on the border. A frame's edges are kept clear of the lines it hides.
 - **If-then-else.** One frame split into two compartments, each with its own "Subchart:" tab. The guard is drawn on the first compartment's top border (Fig. 10).
 - **Creation and destruction.** A dashed arrow labelled "new" from the creator to a head box drawn at that row. An X ends a destroyed line. Each later lifetime starts with a new head box in the same column.
-- **Quoted conditions** are drawn with their text verbatim, without the quotes.
+- **Condition text** is drawn as written (`Condition.text`), not in the canonical printed form; quoted conditions without their quotes.
+- **Text widths** are estimated from a fixed table of character widths rather than measured, so the layout needs no DOM and is identical in a browser, in the command-line renderer and in tests.
 
 ### Theming, configuration and accessibility
 
 - All colours come from theme variables. The diagram defines `lscFrameColor`, `lscHotColor`, `lscColdColor` and `lscConditionFill`. Their defaults are derived from Mermaid's existing variables (`lineColor`, `primaryColor`, `mainBkg`, `textColor`), and users can override them through `themeVariables`. At port time they are added to all five themes.
 - An `lsc` config block, set in front matter or in a `%%{init}%%` directive (site-wide only while the diagram is an external plugin; see §Using the plugin in a page), holds:
   - `showVisibleEvents`: default true;
-  - `temperatureCue`: `line`, `line+color` or `line+badge`, for readers who can't rely on dash patterns;
-  - `showDiagnostics`;
-  - `rowHeight`, `instanceSpacing`, `mirrorInstances` and `useMaxWidth`.
+  - `temperatureCue`: `line` (the default), `line+color` or `line+badge`, for readers who can't rely on dash patterns. `line+color` draws cold elements in `lscColdColor`, which then defaults to `lineColor` faded towards `background`. `line+badge` tags each cold message, condition and line segment, and an existential frame, with a small square "C"; hot elements have no tag;
+  - `showDiagnostics`: default true. Rows that have warnings or errors that don't stop rendering get a numbered marker in the left margin, with the messages as its tooltip, and the diagnostics are listed under the chart with their source lines. The plugin runs `validateLsc` only when this is on. Diagnostics of severity info are not shown;
+  - `rowHeight` (minimum row height, default 36 px), `instanceSpacing` (minimum gap between neighbouring head boxes, default 40 px), `mirrorInstances` (repeat the head boxes at the bottom, default false) and `useMaxWidth` (default true).
 - The diagram id is `liveSequenceChart`, which Mermaid uses as the ARIA role description. When no `accDescr` is given, one is generated from the model, for example "Universal chart, 3 instances, 5 messages, activated by setDest".
-- Hand-drawn mode must keep dashed, dotted and solid lines distinguishable, or it uses `line+badge` automatically. If neither works, the docs say so, as Mermaid allows.
+- Hand-drawn mode must keep dashed, dotted and solid lines distinguishable, or it uses `line+badge` automatically. If neither works, the docs say so, as Mermaid allows. Release 1 draws plain lines in every look, so the line styles stay distinguishable, and the docs state that the hand-drawn look is not implemented.
 
 ## Semantic model and public API
 
@@ -743,7 +745,7 @@ interface LscChart {
   instances: Instance[];                               // inst(m); one entry per lifetime
   variables: Variable[];                               // declared part of vis_var(m)
   visibleEvents: EventSpec[];                          // vis_events(m) beyond those drawn
-  activation?: { condition?: Expr; message?: EventSpec };   // ac(m); the message is cold
+  activation?: { condition?: Expr; conditionText?: string; message?: EventSpec };   // ac(m); the message is cold
   prechart?: Region;                                   // pch(m)
   body: Region;
   messages: Message[];
@@ -795,7 +797,8 @@ interface MessageEvent { message: string; dir: '!' | '?' }   // Message.id
 interface EventSpec { from: string; to: string; name: string;
                       kind: 'synch' | 'asynch'; dir?: '!' | '?' }  // dir absent = both events
 interface Condition { id: string; instances: string[]; sharedBy: string[];
-                      expr: Expr; temp: Temp; locations: LocRef[]; span: SourceSpan }
+                      expr: Expr; text: string;           // text: as written, for display; quoted conditions without quotes
+                      temp: Temp; locations: LocRef[]; span: SourceSpan }
                       // instances: as written, for resolution; sharedBy: for ordering (guards: the block's lifetimes alive at entry)
 interface Barrier { id: string; instances: string[]; locations: LocRef[];   // instances: lifetimes alive at the barrier
                     at: 'entry' | 'exit'; block: string }
@@ -850,7 +853,7 @@ For a chart without subcharts, alternatives, creation, coregions or a pre-chart,
 
 | Function | Returns | Release |
 | --- | --- | --- |
-| `parseLsc(text)` | `{ model, diagnostics }`: syntax errors and the rules tied to the source text; no model after a syntax error or an error from a rule marked ✱ | 1 |
+| `parseLsc(text, { firstLine? })` | `{ model, diagnostics }`: syntax errors and the rules tied to the source text; no model after a syntax error or an error from a rule marked ✱. `firstLine` numbers the text's lines from that line, in spans and in messages that cite lines, for text cut out of a larger document such as a Mermaid block after its front matter | 1 |
 | `validateLsc(model)` | diagnostics of the rules checked on the model's unfoldings and partial order (V1, V2, V5, V8) and per message (V14, V16), with severity, source span and, where relevant, the unfolding | 1 |
 | `unfoldings(model)` | the basic charts described above | 1 |
 | `partialOrder(model, unfolding?)` | the relation, including barriers, plus a topological layering | 1 |
@@ -930,7 +933,7 @@ The model is the centre. The plugin's db holds a fresh model for each render, an
 | Package | Contents | Depends on | Licence |
 | --- | --- | --- | --- |
 | `lsc-model` | Langium grammar and parser, expression parser, model, validator, unfoldings, partial order, JSON | Langium | MIT |
-| `mermaid-lsc` | Detector, loader, db, layout, renderer, styles; a command-line renderer that writes SVG | `lsc-model`; Mermaid as a peer | MIT |
+| `mermaid-lsc` | Detector, loader, db, layout, renderer, styles; a command-line renderer that writes SVG | `lsc-model`; jsdom, for the command-line renderer; Mermaid as a peer | MIT |
 
 ### Using the plugin in a page
 
@@ -959,7 +962,7 @@ ZenUML is loaded the same way. The package name `mermaid-lsc` is a placeholder. 
 
 As an external plugin, the `lsc` config block and the `lsc*` theme variables are read only from `mermaid.initialize`, as in the example above, so they apply to every chart on the page. Mermaid discards config keys it does not know when they appear in front matter or a `%%{init}%%` directive. Mermaid's own settings, such as `theme`, `title` and its standard theme variables, work per chart as usual, and the `lsc*` colours follow them by default. Per-chart `lsc` settings arrive with the upstream port, when the keys join Mermaid's config schema. The RFC also asks whether external diagrams could register their own config keys, which would lift the limit for every plugin.
 
-Sites that render Mermaid with built-in diagrams only, such as GitHub, GitLab and Obsidian, can't load the plugin. For them, the command-line renderer produces SVG files to embed as images until the diagram is available in Mermaid itself.
+Sites that render Mermaid with built-in diagrams only, such as GitHub, GitLab and Obsidian, can't load the plugin. For them, the command-line renderer produces SVG files to embed as images until the diagram is available in Mermaid itself. It runs Mermaid with the plugin inside jsdom, so its SVG is the one Mermaid draws in a page, with themes, front matter and `%%{init}%%` directives behaving as they do there. Scripts get the same renderer as `renderSvg` from `mermaid-lsc/node`.
 
 ### Parsing
 

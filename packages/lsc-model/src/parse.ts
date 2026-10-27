@@ -21,10 +21,20 @@ export interface ParseResult {
   diagnostics: Diagnostic[];
 }
 
+export interface ParseOptions {
+  /**
+   * The line number of the text's first line (default 1). An embedding that strips lines
+   * before the chart, such as Mermaid's front matter, sets it so that every line number in
+   * spans and messages matches the full document. Offsets stay relative to `text`.
+   */
+  firstLine?: number;
+}
+
 /** Parses LSC text into a model. Never throws on bad input; problems are returned as diagnostics. */
-export function parseLsc(text: string): ParseResult {
+export function parseLsc(text: string, options: ParseOptions = {}): ParseResult {
+  const firstLine = options.firstLine ?? 1;
   const result = lscServices().parser.LangiumParser.parse<AstChart>(text);
-  const source = new Source(text);
+  const source = new Source(text, firstLine);
   const diagnostics: Diagnostic[] = [
     ...result.lexerErrors.map((e) => lexerDiagnostic(source, e)),
     ...result.parserErrors.map((e) => parserDiagnostic(source, e)),
@@ -32,7 +42,7 @@ export function parseLsc(text: string): ParseResult {
   if (diagnostics.length > 0) {
     return { model: undefined, diagnostics };
   }
-  const built = buildModel(result.value, text);
+  const built = buildModel(result.value, text, firstLine);
   return {
     model: built.diagnostics.some(isBlocking) ? undefined : built.model,
     diagnostics: built.diagnostics,
