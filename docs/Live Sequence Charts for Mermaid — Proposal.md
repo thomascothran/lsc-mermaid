@@ -4,7 +4,7 @@ Oct 27, 2026 · @Thomas
 
 ## Summary
 
-We propose a new Mermaid diagram type that renders Live Sequence Charts (Damm & Harel, 2001) from text. During beta its keyword is `lsc-beta`; it becomes `lsc` when the diagram leaves beta. Every construct in the notation maps to an LSC concept: chart mode, activation, pre-chart, hot and cold messages, locations and conditions, separately placed send and receive events, coregions, simultaneous regions and subcharts.
+We propose a new Mermaid diagram type that renders Live Sequence Charts (Damm & Harel, 2001) from text. While the notation may still change, its keyword is `lsc-alpha`; it becomes `lsc` once the notation is declared stable. Every construct in the notation maps to an LSC concept: chart mode, activation, pre-chart, hot and cold messages, locations and conditions, separately placed send and receive events, coregions, simultaneous regions and subcharts.
 
 We found no open-source JavaScript tool that does this. We will build it first as an external Mermaid plugin, loaded the same way as ZenUML, and follow Mermaid's contribution conventions from the start. Once the notation has settled, we will open an RFC and then an upstream pull request.
 
@@ -70,9 +70,9 @@ Each row gives the element's meaning in the paper, how it is drawn, and the stat
 
 | Element | Meaning (paper) | Drawn as | Statement |
 | --- | --- | --- | --- |
-| Universal chart | Every run that meets the activation must satisfy the chart (p. 51) | Solid frame | `lsc-beta universal` |
-| Existential chart | At least one run satisfies the chart (pp. 47, 51) | Dashed frame (Fig. 3) | `lsc-beta existential` |
-| Standalone subchart | A subchart drawn on its own (Fig. 11) | Solid frame with tab "Subchart: name" | `lsc-beta subchart` |
+| Universal chart | Every run that meets the activation must satisfy the chart (p. 51) | Solid frame | `lsc-alpha universal` |
+| Existential chart | At least one run satisfies the chart (pp. 47, 51) | Dashed frame (Fig. 3) | `lsc-alpha existential` |
+| Standalone subchart | A subchart drawn on its own (Fig. 11) | Solid frame with tab "Subchart: name" | `lsc-alpha subchart` |
 | Chart name | Identifies the chart (p. 60) | Header tab "LSC: name" | `title` |
 | Activation condition | Snapshot condition that starts the chart (p. 51) | "AC: expr" line in the header tab (Figs. 8–14) | `activation when` |
 | Activation message | "A simple kind of activation condition, which is really an activation message", drawn as "a dashed cold message arrow"; the chart starts when the message is received (p. 51) | Dashed arrow entering the frame from outside; the receiver's line dashed above the frame (Fig. 2) | `activation on` |
@@ -198,7 +198,7 @@ Meaning lives in keywords. Nothing visual, such as colour or style, carries mean
 
 | Statement | Syntax | Example |
 | --- | --- | --- |
-| Header (first line) | `lsc-beta` (`universal` \| `existential` \| `subchart`) | `lsc-beta universal` |
+| Header (first line) | `lsc-alpha` (`universal` \| `existential` \| `subchart`) | `lsc-alpha universal` |
 | Title | `title` text | `title Car departure` |
 | Accessibility | `accTitle:` text, `accDescr:` text, `accDescr {` … `}` | `accDescr: Departure handshake` |
 | Defaults | `defaults` (`hot` \| `cold`) | `defaults cold` |
@@ -282,7 +282,7 @@ Keywords are contextual: a word is a keyword only where the grammar expects one,
 
 ```
 chart        = header NL { decl NL } [ prechart NL ] { stmt NL }
-header       = ( "lsc-beta" | "lsc" ) ( "universal" | "existential" | "subchart" )
+header       = ( "lsc-alpha" | "lsc" ) ( "universal" | "existential" | "subchart" )
 decl         = "title" TEXT | "accTitle:" TEXT | "accDescr:" TEXT
              | "accDescr" "{" TEXT "}"
              | "defaults" temp
@@ -325,7 +325,7 @@ The validator enforces the context rules from the tables above, not the grammar.
 
 ### Reserved words
 
-In use: `lsc lsc-beta universal existential subchart title defaults instance participant actor as var visible activation when on prechart end hot cold progress send receive from condition coregion simultaneous over repeat if else create by destroy timeout note left right of env true false and or not bool int`.
+In use: `lsc lsc-alpha universal existential subchart title defaults instance participant actor as var visible activation when on prechart end hot cold progress send receive from condition coregion simultaneous over repeat if else create by destroy timeout note left right of env true false and or not bool int`.
 
 Reserved for later LSC extensions: `forbidden symbolic assign within delay sync initial invariant iterative ref sent received`.
 
@@ -338,7 +338,7 @@ Each example encodes a figure from the paper, apart from the last three. Togethe
 Fig. 1 shows only messages. We write it as a universal chart to show the effect the paper describes: arrival messages must not occur while a car is departing (p. 50). The paper's own event list makes these messages synchronous (pp. 49–50).
 
 ```
-lsc-beta universal
+lsc-alpha universal
   title Visible events
   instance car, carHandler, destPanel, passenger
   visible car ->> carHandler: arrivReq
@@ -354,7 +354,7 @@ lsc-beta universal
 ### Fig. 2 — universal chart with an activation message
 
 ```
-lsc-beta universal
+lsc-alpha universal
   title Car departure
   instance cruiser, car, carHandler
   activation on env ->> car: setDest
@@ -371,7 +371,7 @@ The chart starts when `car` receives `setDest`. Every top location is hot, so al
 ### Fig. 3 — existential chart
 
 ```
-lsc-beta existential
+lsc-alpha existential
   title Car stopping at terminal
   instance proxSensor, cruiser, car, carHandler
 
@@ -385,7 +385,7 @@ lsc-beta existential
 ### Fig. 4 — pre-chart and cold locations
 
 ```
-lsc-beta universal
+lsc-alpha universal
   title Perform approach
   instance proxSensor, car, carHandler
 
@@ -406,7 +406,7 @@ The pre-chart is only matched: observing `departAck` does not oblige `alert100` 
 This example uses subcharts, a shared condition, coregions, timeouts, creation and destruction, and if-then-else. The variables are the car's, as declared on p. 49. The conditions `idle`, `departure`, `cruising` and `arrival` use the value shorthand. The guard of "Stop at terminal" is quoted, because the figure writes it with navigation.
 
 ```
-lsc-beta universal
+lsc-alpha universal
   title Car behavior
   instance destPanel as "DestPanel", terminal as "Terminal"
   instance controlCenter as "Control Center", cruiser as "Cruiser"
@@ -482,7 +482,7 @@ Points this fixture exercises:
 ### Fig. 11 — standalone subchart
 
 ```
-lsc-beta subchart
+lsc-alpha subchart
   title Perform approach
   instance proxSensor as "Proximity Sensor", cruiser as "Cruiser"
   instance car as "Car", terminal as "Terminal"
@@ -521,7 +521,7 @@ lsc-beta subchart
 This example isn't from a figure. It shows the orders that one-line messages can't express. Here `request` and `notify` cross, and the second `data` overtakes the first. Labels distinguish the two `data` occurrences.
 
 ```
-lsc-beta existential
+lsc-alpha existential
   title Crossing and overtaking
   instance client, server
 
@@ -541,7 +541,7 @@ lsc-beta existential
 This example isn't from a figure. `controller` sends two messages at one location and checks a condition there. The receipts happen later, in either order.
 
 ```
-lsc-beta existential
+lsc-alpha existential
   title Simultaneous start
   instance controller, left, right
 
@@ -557,7 +557,7 @@ lsc-beta existential
 ### Forbidden scenario idiom
 
 ```
-lsc-beta universal
+lsc-alpha universal
   title No arrival request while departing
   instance car, carHandler
 
@@ -752,7 +752,7 @@ For a chart without subcharts, alternatives, creation, coregions or a pre-chart,
 | `unfoldings(model)` | the basic charts described above | 1 |
 | `partialOrder(model, unfolding?)` | the relation, including barriers, plus a topological layering | 1 |
 | `toJSON(model)` / `fromJSON(json)` | a stable, versioned JSON form | 1 |
-| Mermaid diagram definition `lsc-beta` | parser, db, renderer, styles | 1 |
+| Mermaid diagram definition `lsc-alpha` | parser, db, renderer, styles | 1 |
 | `skeletonAutomaton(model)` | the transition system of Appendix A.2 with the readings applied, for monitors | later |
 
 The model package has no rendering or DOM dependencies, so it also runs in Node, in tests and in a future monitor.
@@ -838,7 +838,7 @@ The model is the centre. The plugin's db holds a fresh model for each render, an
 </script>
 
 <pre class="mermaid">
-lsc-beta universal
+lsc-alpha universal
   title Car departure
   activation on env ->> car: setDest
   car ->> carHandler: departReq
@@ -846,7 +846,7 @@ lsc-beta universal
 </pre>
 ```
 
-ZenUML is loaded the same way. The package name `mermaid-lsc` is a placeholder. The plugin accepts both `lsc-beta` and `lsc` as the header keyword, so charts keep working when the diagram leaves beta.
+ZenUML is loaded the same way. The package name `mermaid-lsc` is a placeholder. The plugin accepts both `lsc-alpha` and `lsc` as the header keyword, so charts keep working when the notation is declared stable.
 
 Sites that render Mermaid with built-in diagrams only, such as GitHub, GitLab and Obsidian, can't load the plugin. For them, the command-line renderer produces SVG files to embed as images until the diagram is available in Mermaid itself.
 
@@ -886,7 +886,7 @@ At port time:
 | # | Decision | Alternative considered | Why |
 | --- | --- | --- | --- |
 | D1 | Messages, locations and conditions default to `hot`; `defaults cold` gives the provisional reading | Default `cold`, the reading in which plain MSCs embed (p. 57) | Every figure in the paper draws elements hot, in both modes. With the mode written in every header (D7) and pre-charts free of temperature, the default never hides a surprising meaning. |
-| D2 | Keyword `lsc-beta` during beta, `lsc` afterwards; the plugin accepts both | `liveSequenceDiagram`, closer to `sequenceDiagram` | Follows Mermaid's practice for newer diagrams; accepting both keeps charts working across the transition. |
+| D2 | Keyword `lsc-alpha` while the notation may change, `lsc` once it is stable; the plugin accepts both. The keyword used in Mermaid core is agreed in the RFC | `lsc-beta`, Mermaid's suffix for new diagrams; `liveSequenceDiagram`, closer to `sequenceDiagram` | "Alpha" says the notation itself is still open to change, which is a stronger warning than Mermaid's "beta" for diagrams already in core. Accepting both keywords keeps charts working across the transition. |
 | D3 | Temperature is written with `hot` / `cold` prefix keywords | Arrow variants (`-->>` dashed = cold) | Keeps the core concept in words rather than punctuation. Accepting dashed arrows would also turn every reply in a pasted Mermaid sequence diagram into a cold message without warning. Mermaid arrows get targeted errors instead (V23). |
 | D4 | One chart per block; standalone subcharts use the `subchart` header; `ref` is reserved | A `spec` block holding several charts with shared declarations | Matches Mermaid's one-diagram-per-block model and covers Fig. 11. Cross-block references have no Mermaid mechanism yet. |
 | D5 | A shared condition across non-adjacent instances is drawn across them, with non-sharing lines drawn over it | Reorder columns automatically so that sharers are adjacent | Keeps the author's column order, which carries meaning for readers. |
@@ -907,7 +907,7 @@ There are five phases, each closed by a gate. The plugin from Phase 2 is useful 
 | 0. Notation | Finalise grammar and examples; write all worked examples as fixtures | Fixtures reviewed against the paper's figures; notation frozen for release 1 |
 | 1. Model library | `lsc-model`: parser, expression parser, model, validator, unfoldings, partial order, JSON | Every fixture parses, validates and round-trips through JSON; every V-rule has a positive and negative test |
 | 2. Mermaid plugin | `mermaid-lsc`: layout, renderer, theming, accessibility, command-line SVG renderer, docs site | Published plugin renders every fixture; visual regression baselines approved |
-| 3. Upstream port | RFC issue, then port into Mermaid per the checklist below | RFC accepted by maintainers; PR merged as `lsc-beta` |
+| 3. Upstream port | RFC issue, then port into Mermaid per the checklist below | RFC accepted by maintainers, including the keyword used in core; PR merged |
 | 4. Beyond release 1 | `skeletonAutomaton`, runtime monitor, animated play-through, general activation conditions, chart references, later LSC extensions | (open) |
 
 Phase 0 comes first because the notation is the hardest thing to change once people have written charts in it. No dates are set yet; they depend on who staffs the work.
