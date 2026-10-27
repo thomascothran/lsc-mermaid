@@ -1,0 +1,32 @@
+{
+  "name": "mermaid-lsc",
+  "version": "0.0.0",
+  "description": "Live Sequence Charts as a Mermaid external diagram",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "lsc-source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "lsc-model": "workspace:*"
+  },
+  "peerDependencies": {
+    "mermaid": "^12.0.0"
+  },
+  "devDependencies": {
+    "mermaid": "^12.2.0"
+  }
+}

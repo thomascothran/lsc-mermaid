@@ -1,0 +1,30 @@
+{
+  "name": "mermaid-lsc-workspace",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "generate": "pnpm --filter lsc-model run generate",
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm generate && tsc -b && tsc -p tsconfig.test.json",
+    "test": "pnpm generate && vitest run",
+    "test:watch": "pnpm generate && vitest",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.0.0",
+    "eslint": "^10.13.0",
+    "jsdom": "^30.1.3",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.0.5"
+  }
+}

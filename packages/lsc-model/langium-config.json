@@ -1,0 +1,13 @@
+{
+  "projectName": "Lsc",
+  "languages": [
+    {
+      "id": "lsc",
+      "grammar": "src/language/lsc.langium",
+      "fileExtensions": [".lsc"]
+    }
+  ],
+  "out": "src/language/generated",
+  "importExtension": ".js",
+  "mode": "production"
+}

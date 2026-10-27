@@ -1,0 +1,4 @@
+{
+  "files": [],
+  "references": [{ "path": "packages/lsc-model" }, { "path": "packages/mermaid-lsc" }]
+}

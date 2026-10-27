@@ -1,2 +1,6 @@
 docs/LSCs.pdf
 node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+packages/lsc-model/src/language/generated/
