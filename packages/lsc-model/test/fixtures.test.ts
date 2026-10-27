@@ -1,10 +1,11 @@
-// Phase 0 checks: the fixtures match the spec and their expected results are self-consistent.
-// Phase 1 adds the checks against parseLsc / validateLsc / unfoldings / partialOrder.
+// The fixtures match the spec, their expected results are self-consistent, and lsc-model
+// produces them: parseLsc, validateLsc, unfoldings, partialOrder and the JSON round trip.
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { fixturesDir, loadFixtures } from '../../../fixtures/index.js';
+import { checkFixture } from './fixture-checks.js';
 
 const specPath = join(fixturesDir, '..', 'docs', 'Live Sequence Charts for Mermaid — Proposal.md');
 
@@ -167,4 +168,6 @@ describe.each(fixtures)('fixture $name', ({ text, expected }) => {
       expect(lineAt(d.line).trim(), `${d.code} line ${d.line}`).not.toBe('');
     }
   });
+
+  checkFixture(text, expected);
 });

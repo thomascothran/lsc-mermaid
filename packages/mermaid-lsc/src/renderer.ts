@@ -28,7 +28,7 @@ export const draw: DrawDefinition = (_text, id, _version, diagram) => {
   if (!svg || !model) return;
 
   const root = el(svg, 'g', { class: 'lsc' });
-  const universal = model.mode === 'universal';
+  const universal = model.mode !== 'existential';
   el(root, 'rect', {
     class: `lsc-frame ${universal ? 'lsc-hot' : 'lsc-cold'}`,
     x: MARGIN,
@@ -36,7 +36,7 @@ export const draw: DrawDefinition = (_text, id, _version, diagram) => {
     width: WIDTH - 2 * MARGIN,
     height: HEIGHT - 2 * MARGIN,
   });
-  const heading = model.mode === 'subchart' ? 'Subchart' : 'LSC';
+  const heading = model.kind === 'subchart' ? 'Subchart' : 'LSC';
   const title = db.getDiagramTitle();
   const label = el(root, 'text', { class: 'lsc-tab-text', x: MARGIN + 8, y: MARGIN + 18 });
   label.textContent = title ? `${heading}: ${title}` : heading;

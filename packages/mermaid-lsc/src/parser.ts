@@ -1,4 +1,4 @@
-import { parseLsc, type Diagnostic } from 'lsc-model';
+import { isBlocking, parseLsc, type Diagnostic } from 'lsc-model';
 import { LscDb } from './db.js';
 import type { DiagramDb } from './mermaid-adapter.js';
 
@@ -32,9 +32,9 @@ export const parser = {
     }
     const { model, diagnostics } = parseLsc(text);
     db.diagnostics = diagnostics.map((d) => withLineOffset(d, db.frontmatterLineOffset));
-    const errors = db.diagnostics.filter((d) => d.severity === 'error');
-    if (!model || errors.length > 0) {
-      throw new LscParseError(errors);
+    // Only syntax errors and the rules marked ✱ in the proposal stop rendering.
+    if (!model) {
+      throw new LscParseError(db.diagnostics.filter(isBlocking));
     }
     db.model = model;
     // Front-matter `title` arrives through setDiagramTitle before parsing; the chart's own title wins.

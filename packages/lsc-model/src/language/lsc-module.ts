@@ -14,7 +14,11 @@ import {
 } from 'langium';
 import { LscGeneratedModule, LscGeneratedSharedModule } from './generated/module.js';
 
-/** Strips the keyword from whole-line statements such as `title` and `accDescr`. */
+/**
+ * Strips the keyword from whole-line statements such as `title` and `accDescr`, and the quotes
+ * from quoted names. `TEXT`, `AS_LABEL` and the activation terminals stay raw: the builder needs
+ * their exact source offsets.
+ */
 export class LscValueConverter extends DefaultValueConverter {
   protected override runConverter(
     rule: GrammarAST.AbstractRule,
@@ -22,6 +26,8 @@ export class LscValueConverter extends DefaultValueConverter {
     cstNode: CstNode,
   ): ValueType {
     switch (rule.name) {
+      case 'Name':
+        return input.startsWith('"') ? input.slice(1, -1) : input;
       case 'TITLE':
         return input.replace(/^[\t ]*title/, '').trim();
       case 'ACC_TITLE':

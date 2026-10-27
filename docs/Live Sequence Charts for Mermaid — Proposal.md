@@ -164,13 +164,13 @@ The paper defines basic charts formally (Appendix A) and the remaining construct
 
 ### Structured constructs
 
-11. **Blocks synchronise.** The entry and exit of every subchart, every `if`/`else` branch and every iteration of a `repeat` is a synchronisation barrier over the block's instances. Barriers behave as shared conditions that are always true (p. 70). Only lifetimes alive at a barrier take part in it: a lifetime created inside a block is not part of the block's entry barrier, and one destroyed inside it is not part of its exit barrier. This makes the paper's "a subchart with a cold condition at its start is really an if-then branching construct" (p. 56) hold for every instance in the subchart.
-12. **Guards are entry barriers.** If a block's first statement is a condition, that condition is the block's entry barrier. Its variables resolve against the instances it names; for ordering, it is shared by all of the block's lifetimes alive at entry. The paper draws it across the top border of the frame (pp. 60, 63).
+11. **Blocks synchronise.** The entry and exit of every subchart, every `if`/`else` branch and every iteration of a `repeat` is a synchronisation barrier over the block's instances. Barriers behave as shared conditions that are always true (p. 70). Only lifetimes alive at a barrier take part in it: a lifetime created inside a block is not part of the block's entry barrier, and one destroyed inside it is not part of its exit barrier. The guard of an `if` is the entry barrier of both its branches, and both branches end at one exit barrier at the `end`. This makes the paper's "a subchart with a cold condition at its start is really an if-then branching construct" (p. 56) hold for every instance in the subchart.
+12. **Guards are entry barriers.** If a block's first statement, not counting local instance declarations and notes, is a condition, that condition is the block's entry barrier. Its variables resolve against the instances it names; for ordering, it is shared by all of the block's lifetimes alive at entry. The paper draws it across the top border of the frame (pp. 60, 63).
 13. **A block's instances** are those in its `over` list, those used inside it, and its local instances. A chart with the `subchart` header is itself a block over all its instances: its opening condition is its entry barrier, and it can be left at its cold conditions like any nested subchart.
 14. **Branches are subcharts.** A false cold condition inside an `if` or `else` branch exits that branch only, as each branch has its own "Subchart:" tab (Fig. 10).
 15. **If-then-else** evaluates its guard once, as a cold condition, and exactly one branch runs. Two sequential subcharts guarded by `c` and `not c` are different: each guard is evaluated separately, and local computation steps in between may change `c` (p. 57), so both or neither may run.
 16. **Iteration.** `repeat *` runs until a cold condition inside it is false (p. 56). `repeat n` reads `n` once on entry.
-17. **Lifetimes.** After `destroy x`, a later `create x` introduces a new instance that shares `x`'s column and label. Each lifetime is a distinct member of the chart's instance set, and its destruction location is its maximal location, so it is cold. A plain reference to `x` means the lifetime alive at that point in the text.
+17. **Lifetimes.** After `destroy x`, a later `create x` introduces a new instance that shares `x`'s column and label. Each lifetime is a distinct member of the chart's instance set, and its destruction location is its maximal location, so it is cold. A plain reference to `x` means the lifetime alive at that point in the text. Each branch of an `if … else` starts from the lifetimes alive at its guard: a `destroy` or `create` in one branch does not happen in the other. After the `end`, a lifetime alive at the end of either branch is alive.
 18. **Creation order.** The creator's creation location precedes the created lifetime's first location.
 19. **Timeouts** are locations on their instance with no timing semantics (p. 63).
 
@@ -223,18 +223,18 @@ Meaning lives in keywords. Nothing visual, such as colour or style, carries mean
 | Timeout | `timeout` inst `:` label | `timeout car: tm(90)` |
 | Note | `note` (`over` insts \| `left of` inst \| `right of` inst) `:` text | `note over car, carHandler: handshake` |
 
-`Note` is accepted for `note`, as in Mermaid. An instance label is either a quoted string or, when the line declares a single instance, the unquoted text to the end of the line: `participant car as Rail car`.
+`Note` is accepted for `note`, as in Mermaid. An instance label is either a quoted string or, when the line declares a single instance, the unquoted text to the end of the line: `participant car as Rail car`. In `create`, an unquoted label runs up to the last `by`: `create carHandler as Car handler by terminal`.
 
 ### Statement semantics in brief
 
 §Semantic readings gives the full meaning of each construct. In brief:
 
-- **`progress`** sets the temperature of the instance's current location and of each later location, up to but not including its maximal location. The current location is the instance's latest location in the body, or the top of its line if it has none yet. The setting lasts until the next `progress` for that instance or the end of the enclosing block, whichever comes first. At a block's `end`, each instance's temperature reverts to what it was when the block started, so temperatures never depend on which branch ran.
+- **`progress`** sets the temperature of the instance's current location and of each later location, up to but not including its maximal location. The current location is the instance's latest location in the body on the path being written, or the top of its line if it has none yet. Inside an `else`, the `then` branch is not on that path, so the current location is the guard's or a later one in the `else`. The setting lasts until the next `progress` for that instance or the end of the enclosing block, whichever comes first. At a block's `end`, each instance's temperature reverts to what it was when the block started, so temperatures never depend on which branch ran.
 - **`activation on`** holds in a snapshot where the named event occurs. The event is the receipt unless the statement says `send` (p. 51). It can be combined with `activation when`, in which case both must hold, and with a `prechart`. The activation must hold before the pre-chart is even evaluated (p. 60). In release 1 an activation is one event and one expression at most. The functions `sent(…)` and `received(…)` are reserved so that later releases can write general activation conditions over events and variables (p. 49).
 - **`visible`** adds events the chart constrains but does not show. Without `send` or `receive`, both events of the message are visible. While the chart is active, a visible event may occur only as the chart's next step (pp. 49–50).
 - **`var`** declares a variable and makes it visible. The chart's visible variables are the declared variables plus every variable used in a condition (p. 49).
-- **Instances** can also be implicit. An id first seen in a message is added as a chart-level instance, in order of appearance. An id first seen in `create` is a created instance and may not be used before that line. An instance declaration inside a subchart introduces an instance local to that subchart (p. 56). A local instance is alive for the whole subchart, so it takes part in the subchart's entry and exit barriers. `participant` is the same as `instance`; `actor` is an instance drawn with a stick-figure head.
-- **`env`** is reserved. Messages to or from it are drawn to the nearer frame edge. A message with `env` as one endpoint is always a one-line message, because the environment has no locations.
+- **Instances** can also be implicit. An id first seen in a message, including an `activation on` or `visible` message, is added as a chart-level instance, in order of appearance. An id first seen in `create` is a created instance and may not be used before that line. An instance declaration inside a subchart introduces an instance local to that subchart (p. 56). A local instance is alive for the whole subchart, so it takes part in the subchart's entry and exit barriers. `participant` is the same as `instance`; `actor` is an instance drawn with a stick-figure head.
+- **`env`** is reserved, quoted or not. Messages to or from it are drawn to the nearer frame edge. A message with `env` as one endpoint is always a one-line message, because the environment has no locations.
 - **`send` / `receive`** pairing: a labelled `receive #x` matches the `send #x` with the same label and name. An unlabelled `receive` matches the earliest unmatched, unlabelled `send` with the same name from the `from` instance to the receiving instance. A `send` creates the sender's location. The matching `receive` creates the receiver's location. The message's temperature is written on the `send`. A split send and its receive should be in the same block.
 - **`subchart`** covers its block's instances (reading 13). The lines of other instances are transparent to it: they are not drawn inside its frame (p. 63). Entry and exit synchronise its instances, and an opening condition is its entry barrier (readings 11–12).
 - **`repeat`**: `repeat *` loops until a cold condition inside it is false. `repeat n` reads `n`, which must be a declared `int` variable, once on entry. Each iteration synchronises the block's instances.
@@ -254,7 +254,7 @@ Meaning lives in keywords. Nothing visual, such as colour or style, carries mean
   - references: `inst.var`, an unqualified `var`, or a longer dotted path such as `car.stopsAt.isEmpty`, which is kept as an opaque reference;
   - operators: `= != < <= > >= + - * / and or not`, and parentheses. From tightest to loosest they bind as `* /`, then `+ -`, then the comparisons, then `not`, `and` and `or`. Arithmetic operators associate to the left, and comparisons do not chain, so `not a = b and c` means `(not (a = b)) and c`.
 - **Quoted conditions.** A condition written as a double-quoted string, such as `"stops_at->isEmpty=TRUE"`, is an opaque proposition. It is rendered verbatim and not checked. This is how conditions printed in the paper's figures with navigation (`->`) are written. `->` is not an operator, because it would clash with arrows.
-- **Unqualified variables.** An unqualified variable resolves first against the condition's instances, then against global variables. If more than one variable matches, that is an error.
+- **Unqualified variables.** An unqualified variable resolves first against the condition's instances, then against global variables. If more than one variable matches, that is an error. An `activation when` condition names no instances, so its unqualified variables resolve against global variables only.
 - **Value shorthand.** `inst.c` or a bare `c`, where `c` is a value of exactly one enum variable `v` on the condition's instances, abbreviates `inst.v = c`. A bare `b`, where `b` is a `bool` variable, abbreviates `b = true`. The paper uses this form: `AC: car.idle` means `car.state = idle` (pp. 49, 60).
 - **Propositions.** A bare identifier that resolves to nothing is a named proposition. It is rendered as written, and validation treats it as opaque. If the chart declares variables, an unresolved identifier is reported as a warning, since it is usually a typo. A quoted condition is always intentional and draws no diagnostic.
 
@@ -321,7 +321,7 @@ ID           = NAME | STRING
 type         = "bool" | "int" [ "[" INT ".." INT "]" ] | "{" NAME { "," NAME } "}"
 ```
 
-The validator enforces the context rules from the tables above, not the grammar. That way an error can say what is allowed instead of just failing to parse. The same applies to Mermaid arrows that the grammar doesn't accept, and to Mermaid's `create participant x` form: each gets a message showing the LSC form.
+The parser enforces the context rules from the tables above after parsing, not in the grammar. That way an error can say what is allowed instead of just failing to parse. A statement in a place the tables don't allow is a syntax error; an event in a coregion that is not on the coregion's instance breaks V9. The same applies to Mermaid arrows that the grammar doesn't accept, and to Mermaid's `create participant x` form: each gets a message showing the LSC form.
 
 ### Reserved words
 
@@ -748,6 +748,7 @@ interface LscChart {
   body: Region;
   messages: Message[];
   conditions: Condition[];
+  barriers: Barrier[];                                 // block entries and exits (reading 11)
   notes: Note[];                                       // annotations, no semantics
 }
 
@@ -787,12 +788,14 @@ interface Message {
   from: string; to: string;                            // instance id or 'env'
   kind: 'synch' | 'asynch'; temp: Temp;
   send?: LocRef; receive?: LocRef;                     // absent on the env side
+  span: SourceSpan;                                    // the one-line message or its `send`
+  receiveSpan?: SourceSpan;                            // the `receive` of a split message
 }
 interface MessageEvent { message: string; dir: '!' | '?' }   // Message.id
 interface EventSpec { from: string; to: string; name: string;
                       kind: 'synch' | 'asynch'; dir?: '!' | '?' }  // dir absent = both events
 interface Condition { id: string; instances: string[]; sharedBy: string[];
-                      expr: Expr; temp: Temp; locations: LocRef[] }
+                      expr: Expr; temp: Temp; locations: LocRef[]; span: SourceSpan }
                       // instances: as written, for resolution; sharedBy: for ordering (guards: the block's lifetimes alive at entry)
 interface Barrier { id: string; instances: string[]; locations: LocRef[];   // instances: lifetimes alive at the barrier
                     at: 'entry' | 'exit'; block: string }
@@ -827,7 +830,7 @@ interface Alternative { kind: 'alt'; id: string; guard: string;      // Conditio
 ### Derived structures
 
 - **Unfoldings.** A basic chart obtained by:
-  - taking every subchart once (a `repeat` is one pass), or leaving it at one of its cold conditions; a chart with the `subchart` header counts as a subchart. A cold condition outside every block of a universal or existential chart ends the chart when it is false. That cut-short run adds no order and no lifetime use that the full run lacks, so it is not a separate unfolding;
+  - taking every subchart once (a `repeat` is one pass), or leaving it at one of its cold conditions; a chart with the `subchart` header counts as a subchart. Leaving a block takes its instances to the block's end, so its exit barrier is part of the unfolding. A cold condition outside every block of a universal or existential chart ends the chart when it is false. That cut-short run adds no order and no lifetime use that the full run lacks, so it is not a separate unfolding;
   - choosing one branch of each `if … else`.
 
   Each unfolding records which cold conditions passed and every cold condition at which a block was left. Sibling and nested blocks can each be left in the same unfolding, so one unfolding may record several exits. The unfolding in which no cold condition fails is the *main* unfolding of each branch choice. The number of unfoldings is capped (default 256). When the cap is reached, the remaining ones are skipped and a warning is issued.
@@ -847,8 +850,8 @@ For a chart without subcharts, alternatives, creation, coregions or a pre-chart,
 
 | Function | Returns | Release |
 | --- | --- | --- |
-| `parseLsc(text)` | `{ model, diagnostics }` | 1 |
-| `validateLsc(model)` | diagnostics with severity, source span and, where relevant, the unfolding | 1 |
+| `parseLsc(text)` | `{ model, diagnostics }`: syntax errors and the rules tied to the source text; no model after a syntax error or an error from a rule marked ✱ | 1 |
+| `validateLsc(model)` | diagnostics of the rules checked on the model's unfoldings and partial order (V1, V2, V5, V8) and per message (V14, V16), with severity, source span and, where relevant, the unfolding | 1 |
 | `unfoldings(model)` | the basic charts described above | 1 |
 | `partialOrder(model, unfolding?)` | the relation, including barriers, plus a topological layering | 1 |
 | `toJSON(model)` / `fromJSON(json)` | a stable, versioned JSON form | 1 |
@@ -861,7 +864,9 @@ The model package has no rendering or DOM dependencies, so it also runs in Node,
 
 The validator turns the paper's well-formedness conditions, and this notation's rules, into diagnostics with line and column.
 
-Inside Mermaid, only syntax errors and the rules marked ✱ stop rendering, because without them the chart can't be laid out. All other findings are returned by `validateLsc`. With `showDiagnostics` on, the renderer also marks them on the diagram. This keeps charts visible in live editors while they are being written.
+`parseLsc` reports syntax errors and the rules tied to the source text. `validateLsc` reports the rules checked on the model's unfoldings and partial order, and per message. A rule can be checked in both: for V8, `parseLsc` finds a use after destruction in the text, and `validateLsc` finds a creation while an earlier lifetime is still alive in some unfolding.
+
+Inside Mermaid, only syntax errors and the rules marked ✱ stop rendering, because without them the chart can't be laid out; after one, `parseLsc` returns no model. The chart is drawn despite all other findings, and with `showDiagnostics` on, the renderer marks them on the diagram. This keeps charts visible in live editors while they are being written.
 
 Rules checked per unfolding report the unfolding with the diagnostic. A violation that occurs on a main unfolding has the severity in the table. A violation that occurs only on unfoldings with a cold exit is a warning. When a violation occurs only where two sibling subcharts with cold guards both run, the diagnostic suggests `if … else`, which makes the branches exclusive.
 
@@ -881,7 +886,7 @@ Rules checked per unfolding report the unfolding with the diagnostic. A violatio
 | V12 | No temperature prefix and no `progress` inside a `prechart` | Reading 7 | Error |
 | V13 | Condition expressions type-check against declared variables, when types are given; an ambiguous unqualified variable is an error | p. 55 | Error |
 | V14 | Synchronous messages to or from `env` add no ordering constraint | A.1, p. 70 | Info |
-| V15 | Synchronous sends inside a coregion or simultaneous region are ordered only before the locations after it (reported once per chart) | Reading 4 | Info |
+| V15 | Synchronous sends inside a coregion or simultaneous region are ordered only before the locations after it (reported once per chart, on the first such region's line) | Reading 4 | Info |
 | V16 | Repeated message names get distinct occurrence ids | p. 55 | Info |
 | V17 | A `repeat` variable is a declared `int` | p. 56 | Error |
 | V18 ✱ | Every `send` has exactly one matching `receive`, and every `receive` a preceding `send`; occurrence labels are unique, and a labelled `receive` matches a labelled `send` with the same name | p. 55 | Error |
