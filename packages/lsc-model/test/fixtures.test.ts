@@ -22,8 +22,76 @@ const fixtures = await loadFixtures();
 describe('fixtures match the spec', () => {
   it('has one fixture per worked example, with identical text', () => {
     const examples = specExamples();
-    expect(examples).toHaveLength(9);
+    expect(examples).toHaveLength(12);
     expect(fixtures.map((f) => f.text).sort()).toEqual([...examples].sort());
+  });
+
+  // The spec claims the worked examples use every statement; each pattern is one statement or
+  // variant worth pinning.
+  const forms: Record<string, RegExp> = {
+    'universal header': /^lsc-alpha universal$/m,
+    'existential header': /^lsc-alpha existential$/m,
+    'subchart header': /^lsc-alpha subchart$/m,
+    title: /^\s*title /m,
+    accTitle: /^\s*accTitle: /m,
+    'accDescr block': /^\s*accDescr \{$/m,
+    'defaults cold': /^\s*defaults cold$/m,
+    instance: /^\s*instance /m,
+    participant: /^\s*participant /m,
+    actor: /^\s*actor /m,
+    'quoted label': /\bas "/,
+    'unquoted label': /^\s*(instance|participant|actor) \w+ as [^"]/m,
+    'quoted id': /^\s*(instance|participant|actor) "/m,
+    'var bool': /^\s*var .*: bool$/m,
+    'var int': /^\s*var .*: int$/m,
+    'var int range': /^\s*var .*: int\[\d+\.\.\d+\]$/m,
+    'var enum': /^\s*var .*: \{/m,
+    'global var': /^\s*var \w+:/m,
+    visible: /^\s*visible (?!send |receive )/m,
+    'visible send': /^\s*visible send /m,
+    'visible receive': /^\s*visible receive /m,
+    'activation when': /^\s*activation when /m,
+    'activation on': /^\s*activation on (?!send |receive )/m,
+    'activation on send': /^\s*activation on send /m,
+    prechart: /^\s*prechart$/m,
+    'sync message': /^\s*(hot |cold )?\S+ ->> /m,
+    'async message': /^\s*(hot |cold )?\S+ -\) /m,
+    'hot message': /^\s*hot \S+ (->>|-\)) /m,
+    'cold message': /^\s*cold \S+ (->>|-\)) /m,
+    'self-message': /^\s*(\w+) (->>|-\)) \1:/m,
+    'env message': /^\s*env (->>|-\)) /m,
+    send: /^\s*send \w/m,
+    'labelled send': /^\s*send #\w+ /m,
+    receive: /^\s*receive \w/m,
+    'labelled receive': /^\s*receive #\w+ /m,
+    condition: /^\s*condition /m,
+    'hot condition': /^\s*hot condition /m,
+    'cold condition': /^\s*cold condition /m,
+    'shared condition': /^\s*condition \w+, /m,
+    'quoted condition': /: "[^"]*"$/m,
+    'hot progress': /^\s*hot progress /m,
+    'cold progress': /^\s*cold progress /m,
+    coregion: /^\s*coregion /m,
+    simultaneous: /^\s*simultaneous \w+$/m,
+    'simultaneous over several': /^\s*simultaneous \w+, /m,
+    subchart: /^\s*subchart "/m,
+    'subchart over': /^\s*subchart .* over /m,
+    'repeat *': /^\s*subchart .* repeat \*$/m,
+    'repeat variable': /^\s*subchart .* repeat [a-zA-Z]\w*$/m,
+    'local instance': /^\s+subchart [^\n]*\n\s+instance /m,
+    if: /^\s*if /m,
+    else: /^\s*else/m,
+    create: /^\s*create /m,
+    destroy: /^\s*destroy /m,
+    timeout: /^\s*timeout /m,
+    'note over': /^\s*[Nn]ote over /m,
+    'note left of': /^\s*note left of /m,
+    'note right of': /^\s*note right of /m,
+    Note: /^\s*Note /m,
+  };
+
+  it.each(Object.entries(forms))('some example uses: %s', (_, pattern) => {
+    expect(fixtures.some((f) => pattern.test(f.text))).toBe(true);
   });
 });
 
@@ -70,6 +138,12 @@ describe.each(fixtures)('fixture $name', ({ text, expected }) => {
       if (parts.prechart)
         expect(new Set(parts.prechart), `${id} prechart`).toEqual(new Set(['cold']));
     }
+  });
+
+  it('notes and local instances point at matching lines', () => {
+    for (const n of expected.notes ?? []) expect(lineAt(n.line)).toMatch(/^\s*[Nn]ote /);
+    for (const i of expected.instances.filter((x) => x.scope))
+      expect(text).toContain(`subchart "${i.scope}"`);
   });
 
   it('order facts use well-formed references', () => {

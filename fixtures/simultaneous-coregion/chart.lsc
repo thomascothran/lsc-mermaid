@@ -1,0 +1,21 @@
+lsc-alpha universal
+  title Tap and refresh
+  instance ui, app, server
+  var app.ready: bool
+  activation on env ->> ui: click
+
+  simultaneous ui, app
+    ui -) app: tap
+    send app -) server: log
+  end
+  receive server from app: log
+  coregion app
+    timeout app: tm(5)
+    server -) app: ack
+    simultaneous app
+      send app -) server: status
+      condition app: ready
+    end
+  end
+  receive server from app: status
+  app -) ui: refresh

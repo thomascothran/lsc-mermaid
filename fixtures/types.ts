@@ -21,6 +21,8 @@ export interface ExpectedInstance {
   label: string;
   column: number;
   head?: 'box' | 'actor';
+  /** Name of the subchart a local instance belongs to; absent for chart-level instances. */
+  scope?: string;
   createdBy?: string;
   createdAtLine?: number;
   destroyedAtLine?: number;
@@ -67,12 +69,20 @@ export interface ExpectedDiagnostic {
   line: number;
 }
 
+export interface ExpectedNote {
+  line: number;
+  placement: { over: string[] } | { leftOf: string } | { rightOf: string };
+  text: string;
+}
+
 export interface FixtureExpectation {
   /** Where the example comes from in the paper, or why it exists. */
   source: string;
   kind: 'chart' | 'subchart';
   mode?: 'universal' | 'existential';
   title: string;
+  accTitle?: string;
+  accDescr?: string;
   defaults: Temp;
   instances: ExpectedInstance[];
   /** Declared variables, as `inst.name: type`. */
@@ -81,6 +91,8 @@ export interface FixtureExpectation {
   activation?: { condition?: string; message?: ExpectedEventSpec };
   messages: ExpectedMessage[];
   conditions: ExpectedCondition[];
+  /** Annotations; they create no locations. */
+  notes?: ExpectedNote[];
   /**
    * Location temperatures per lifetime, indexed by location number: index 0 is the top of the
    * line (no events); event locations start at 1. Pre-chart and body are numbered separately.

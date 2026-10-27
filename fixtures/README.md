@@ -18,9 +18,16 @@ JSON (the Phase 1 gate).
   body). Location 0 is the top of the line and holds no events (p. 71: every instance starts at
   location zero, and no step enters it); event locations start at 1. Every lifetime has a
   location 0 in each part it is alive in.
+- **Message arguments.** `args` is the text between the trailing parentheses: `reading(level)`
+  has the name `reading` and the args `level`.
 - **Condition expressions** are given in canonical printed form after resolution: the value
-  shorthand `idle` on `car` prints as `car.state = idle`, a quoted condition prints with its
-  quotes, and an unresolved identifier prints as itself.
+  shorthand `idle` on `car` prints as `car.state = idle`, a bool variable prints as its
+  qualified reference (`not ready` on `sensor` prints as `not sensor.ready`), a quoted
+  condition prints with its quotes, and an unresolved identifier prints as itself. Operators
+  are separated by single spaces, and parentheses appear only where precedence needs them.
+- **Local instances** have `scope` set to their subchart's name and take part in its entry and
+  exit barriers.
+- **Notes** are listed with their line; they create no locations.
 - **Guards and barriers.** A block's entry barrier is shared by the block's lifetimes alive when
   it starts; a lifetime created inside the block is not part of it. A chart with the `subchart`
   header is itself a block.

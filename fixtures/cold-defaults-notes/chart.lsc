@@ -1,0 +1,26 @@
+lsc-alpha existential
+  title Checkout
+  accTitle: Checkout scenario
+  accDescr {
+    A shopper pays and the payment endpoint confirms the charge.
+  }
+  defaults cold
+  actor shopper as "Shopper"
+  instance shop as Web shop
+  instance "end" as "Payment endpoint"
+  var shop.total: int[0..1000]
+  var shop.paid: bool
+  visible send shop ->> shopper: receipt
+  visible receive "end" -) shop: refund
+
+  shopper ->> shop: checkout
+  note right of shop: total computed here
+  hot progress shop, "end"
+  hot condition shop: total > 0 and not paid
+  hot shop -) "end": charge(total)
+  cold progress shop
+  "end" -) shop: charged
+  Note over shop, "end": settlement
+  condition shop: paid
+  shop ->> shopper: thanks
+  note left of shopper: may leave now

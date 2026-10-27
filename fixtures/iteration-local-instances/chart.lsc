@@ -1,0 +1,30 @@
+lsc-alpha universal
+  title Poll until ready
+  actor operator
+  participant monitor as Plant monitor
+  participant sensor, logger
+  var sensor.ready: bool
+  var sensor.level: int[0..100]
+  var copies: int
+  activation on send operator ->> monitor: begin
+  activation when not sensor.ready
+
+  subchart "Poll" over monitor, sensor repeat *
+    cold condition sensor: not ready
+    monitor -) sensor: poll
+    sensor -) monitor: reading(level)
+  end
+
+  subchart "Summarise" over monitor
+    instance scratch
+    monitor ->> scratch: compute
+    scratch ->> scratch: reduce
+    scratch ->> monitor: summary
+  end
+
+  cold progress logger
+  cold monitor -) logger: trace
+
+  subchart "Report" repeat copies
+    monitor -) operator: report
+  end

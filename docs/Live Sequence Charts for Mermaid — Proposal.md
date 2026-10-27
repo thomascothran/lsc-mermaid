@@ -233,7 +233,7 @@ Meaning lives in keywords. Nothing visual, such as colour or style, carries mean
 - **`activation on`** holds in a snapshot where the named event occurs. The event is the receipt unless the statement says `send` (p. 51). It can be combined with `activation when`, in which case both must hold, and with a `prechart`. The activation must hold before the pre-chart is even evaluated (p. 60). In release 1 an activation is one event and one expression at most. The functions `sent(…)` and `received(…)` are reserved so that later releases can write general activation conditions over events and variables (p. 49).
 - **`visible`** adds events the chart constrains but does not show. Without `send` or `receive`, both events of the message are visible. While the chart is active, a visible event may occur only as the chart's next step (pp. 49–50).
 - **`var`** declares a variable and makes it visible. The chart's visible variables are the declared variables plus every variable used in a condition (p. 49).
-- **Instances** can also be implicit. An id first seen in a message is added as a chart-level instance, in order of appearance. An id first seen in `create` is a created instance and may not be used before that line. An instance declaration inside a subchart introduces an instance local to that subchart (p. 56). `participant` is the same as `instance`; `actor` is an instance drawn with a stick-figure head.
+- **Instances** can also be implicit. An id first seen in a message is added as a chart-level instance, in order of appearance. An id first seen in `create` is a created instance and may not be used before that line. An instance declaration inside a subchart introduces an instance local to that subchart (p. 56). A local instance is alive for the whole subchart, so it takes part in the subchart's entry and exit barriers. `participant` is the same as `instance`; `actor` is an instance drawn with a stick-figure head.
 - **`env`** is reserved. Messages to or from it are drawn to the nearer frame edge. A message with `env` as one endpoint is always a one-line message, because the environment has no locations.
 - **`send` / `receive`** pairing: a labelled `receive #x` matches the `send #x` with the same label and name. An unlabelled `receive` matches the earliest unmatched, unlabelled `send` with the same name from the `from` instance to the receiving instance. A `send` creates the sender's location. The matching `receive` creates the receiver's location. The message's temperature is written on the `send`. A split send and its receive should be in the same block.
 - **`subchart`** covers its block's instances (reading 13). The lines of other instances are transparent to it: they are not drawn inside its frame (p. 63). Entry and exit synchronise its instances, and an opening condition is its entry barrier (readings 11–12).
@@ -247,12 +247,12 @@ Meaning lives in keywords. Nothing visual, such as colour or style, carries mean
 
 ### Labels and expressions
 
-- **Message labels.** A message label is everything after `:` up to the end of the line. Its *name* is the label with any trailing `(…)` removed and whitespace normalised; the parenthesised part is kept as argument text. `setDest(t3)` has the name `setDest`, and `button Pressed` has the name `button Pressed`. Names identify events. `visible` declarations, pre-chart matching and `receive` pairing all match on the name.
+- **Message labels.** A message label is everything after `:` up to the end of the line. Its *name* is the label with any trailing `(…)` removed and whitespace normalised; the text between the parentheses is kept as argument text. `setDest(t3)` has the name `setDest`, and `button Pressed` has the name `button Pressed`. Names identify events. `visible` declarations, pre-chart matching and `receive` pairing all match on the name.
 - **Occurrence ids.** The paper assumes unique message names (p. 55). The model satisfies this by giving every message occurrence a unique id (`departReq`, `departReq#2`) and keeping the name unchanged for matching. Users who need to refer to a particular occurrence write a label: `send #first client -) server: data`. Unlabelled occurrences of a name are numbered in text order (`departReq`, `departReq#2`, `departReq#3`); a labelled occurrence's id is the name and the label (`data#first`). Labels start with a letter, so the two forms never clash.
 - **Condition expressions.** A condition expression is everything after `:` up to the end of the line. A small expression grammar parses it, with:
   - literals: `true`, `false` (also `TRUE`, `FALSE`), integers and enum constants;
   - references: `inst.var`, an unqualified `var`, or a longer dotted path such as `car.stopsAt.isEmpty`, which is kept as an opaque reference;
-  - operators: `= != < <= > >= + - * / and or not`, and parentheses.
+  - operators: `= != < <= > >= + - * / and or not`, and parentheses. From tightest to loosest they bind as `* /`, then `+ -`, then the comparisons, then `not`, `and` and `or`. Arithmetic operators associate to the left, and comparisons do not chain, so `not a = b and c` means `(not (a = b)) and c`.
 - **Quoted conditions.** A condition written as a double-quoted string, such as `"stops_at->isEmpty=TRUE"`, is an opaque proposition. It is rendered verbatim and not checked. This is how conditions printed in the paper's figures with navigation (`->`) are written. `->` is not an operator, because it would clash with arrows.
 - **Unqualified variables.** An unqualified variable resolves first against the condition's instances, then against global variables. If more than one variable matches, that is an error.
 - **Value shorthand.** `inst.c` or a bare `c`, where `c` is a value of exactly one enum variable `v` on the condition's instances, abbreviates `inst.v = c`. A bare `b`, where `b` is a `bool` variable, abbreviates `b = true`. The paper uses this form: `AC: car.idle` means `car.state = idle` (pp. 49, 60).
@@ -331,7 +331,7 @@ Reserved for later LSC extensions: `forbidden symbolic assign within delay sync 
 
 ## Worked examples
 
-Each example encodes a figure from the paper, apart from the last three. Together they cover every element in the inventory and become the first test fixtures.
+Each example encodes a figure from the paper, apart from the last six. Together they cover every element in the inventory and every statement in the statement reference, and they become the first test fixtures.
 
 ### Fig. 1 — visible events
 
@@ -571,6 +571,106 @@ lsc-alpha universal
 
 If the pre-chart is ever observed, the body starts. `car`'s top location is hot, so the hot `false` condition must be reached. It aborts the chart, and the run is rejected. The scenario is therefore forbidden, and no new element is needed (pp. 47, 53).
 
+### Iteration, self-messages and cold messages
+
+This example isn't from a figure. The chart starts when `operator` sends `begin` while the sensor is not ready. "Poll" is the while-loop idiom: it repeats until its opening cold condition is false. "Summarise" has a local instance, `scratch`, whose line is drawn only inside that subchart. `trace` is cold, so it may be lost. `logger`'s line is made cold first, because a hot location there would oblige `logger` to receive it anyway.
+
+```
+lsc-alpha universal
+  title Poll until ready
+  actor operator
+  participant monitor as Plant monitor
+  participant sensor, logger
+  var sensor.ready: bool
+  var sensor.level: int[0..100]
+  var copies: int
+  activation on send operator ->> monitor: begin
+  activation when not sensor.ready
+
+  subchart "Poll" over monitor, sensor repeat *
+    cold condition sensor: not ready
+    monitor -) sensor: poll
+    sensor -) monitor: reading(level)
+  end
+
+  subchart "Summarise" over monitor
+    instance scratch
+    monitor ->> scratch: compute
+    scratch ->> scratch: reduce
+    scratch ->> monitor: summary
+  end
+
+  cold progress logger
+  cold monitor -) logger: trace
+
+  subchart "Report" repeat copies
+    monitor -) operator: report
+  end
+```
+
+### Cold defaults, notes and accessibility
+
+This example isn't from a figure. `defaults cold` gives the provisional reading of a plain MSC (p. 57), and `hot` marks what is mandatory: once the shop has received `checkout`, it must check the order and send `charge`, which must arrive, and the endpoint must answer. `cold progress` ends the shop's hot range, so `charged` may be lost and the shop may stop waiting for it. The endpoint is named `end`, so it is quoted wherever it could be read as a keyword. Notes carry no meaning.
+
+```
+lsc-alpha existential
+  title Checkout
+  accTitle: Checkout scenario
+  accDescr {
+    A shopper pays and the payment endpoint confirms the charge.
+  }
+  defaults cold
+  actor shopper as "Shopper"
+  instance shop as Web shop
+  instance "end" as "Payment endpoint"
+  var shop.total: int[0..1000]
+  var shop.paid: bool
+  visible send shop ->> shopper: receipt
+  visible receive "end" -) shop: refund
+
+  shopper ->> shop: checkout
+  note right of shop: total computed here
+  hot progress shop, "end"
+  hot condition shop: total > 0 and not paid
+  hot shop -) "end": charge(total)
+  cold progress shop
+  "end" -) shop: charged
+  Note over shop, "end": settlement
+  condition shop: paid
+  shop ->> shopper: thanks
+  note left of shopper: may leave now
+```
+
+While the chart is active, `shop` may not send `receipt` and may not receive `refund`, because neither appears in the chart.
+
+### Simultaneous regions and mixed coregions
+
+This example isn't from a figure. One simultaneous region spans `ui` and `app`: `ui` sends `tap`, and `app` receives it and sends `log` at a single location. `app`'s coregion holds a timeout, a receipt and a nested simultaneous region with a condition, in any order.
+
+```
+lsc-alpha universal
+  title Tap and refresh
+  instance ui, app, server
+  var app.ready: bool
+  activation on env ->> ui: click
+
+  simultaneous ui, app
+    ui -) app: tap
+    send app -) server: log
+  end
+  receive server from app: log
+  coregion app
+    timeout app: tm(5)
+    server -) app: ack
+    simultaneous app
+      send app -) server: status
+      condition app: ready
+    end
+  end
+  receive server from app: status
+  app -) ui: refresh
+```
+
 ## Rendering specification
 
 The renderer follows the paper's visual rule: solid lines mean mandatory and dashed lines mean provisional (p. 53). Arrowheads show synchrony and nothing else. Dashed arrows never mean replies, and the syntax page says so for readers who know Mermaid's sequence diagrams.
@@ -727,7 +827,7 @@ interface Alternative { kind: 'alt'; id: string; guard: string;      // Conditio
 ### Derived structures
 
 - **Unfoldings.** A basic chart obtained by:
-  - taking every subchart once (a `repeat` is one pass), or leaving it at one of its cold conditions; a chart with the `subchart` header counts as a subchart;
+  - taking every subchart once (a `repeat` is one pass), or leaving it at one of its cold conditions; a chart with the `subchart` header counts as a subchart. A cold condition outside every block of a universal or existential chart ends the chart when it is false. That cut-short run adds no order and no lifetime use that the full run lacks, so it is not a separate unfolding;
   - choosing one branch of each `if … else`.
 
   Each unfolding records which cold conditions passed and every cold condition at which a block was left. Sibling and nested blocks can each be left in the same unfolding, so one unfolding may record several exits. The unfolding in which no cold condition fails is the *main* unfolding of each branch choice. The number of unfoldings is capped (default 256). When the cap is reached, the remaining ones are skipped and a warning is issued.
