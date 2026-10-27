@@ -1,0 +1,10 @@
+lsc-alpha universal
+  title Car departure
+  instance cruiser, car, carHandler
+  activation on env ->> car: setDest
+
+  car ->> carHandler: departReq
+  carHandler ->> car: departAck
+  car ->> cruiser: start
+  cruiser ->> car: started
+  car ->> cruiser: engage

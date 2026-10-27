@@ -1,0 +1,9 @@
+lsc-alpha existential
+  title Car stopping at terminal
+  instance proxSensor, cruiser, car, carHandler
+
+  car ->> carHandler: arrivReq
+  carHandler ->> car: arrivAck
+  proxSensor ->> car: alertStop
+  car ->> cruiser: disengage
+  car ->> cruiser: stop

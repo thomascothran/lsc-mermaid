@@ -1,0 +1,11 @@
+lsc-alpha universal
+  title Visible events
+  instance car, carHandler, destPanel, passenger
+  visible car ->> carHandler: arrivReq
+  visible carHandler ->> car: arrivAck
+
+  env ->> car: setDest
+  car ->> carHandler: departReq
+  passenger ->> destPanel: pressButton
+  carHandler ->> car: departAck
+  destPanel ->> passenger: flashSign

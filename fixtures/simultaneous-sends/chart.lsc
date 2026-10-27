@@ -1,0 +1,11 @@
+lsc-alpha existential
+  title Simultaneous start
+  instance controller, left, right
+
+  simultaneous controller
+    send controller -) left: start
+    send controller -) right: start
+    condition controller: armed
+  end
+  receive right from controller: start
+  receive left from controller: start

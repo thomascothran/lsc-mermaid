@@ -1,0 +1,13 @@
+lsc-alpha existential
+  title Crossing and overtaking
+  instance client, server
+
+  send client -) server: request
+  send server -) client: notify
+  receive server from client: request
+  receive client from server: notify
+
+  send #first client -) server: data
+  send #second client -) server: data
+  receive #second server from client: data
+  receive #first server from client: data

@@ -1,0 +1,66 @@
+lsc-alpha universal
+  title Car behavior
+  instance destPanel as "DestPanel", terminal as "Terminal"
+  instance controlCenter as "Control Center", cruiser as "Cruiser"
+  instance car as "Car", carHandler as "CarHandler"
+  instance proxSensor as "Proximity Sensor"
+  var car.mode: {pass, stop}
+  var car.isEmpty: bool
+  var car.state: {idle, departure, cruising, arrival}
+  activation when car.idle
+
+  subchart "car leaving terminal - called from another terminal"
+    cold condition car: idle
+    env ->> destPanel: button Pressed
+    destPanel ->> terminal: callCar
+    terminal ->> controlCenter: sendCar
+    controlCenter ->> car: setDest
+    timeout car: tm(90)
+    condition car: departure
+  end
+
+  subchart "Perform departure"
+    cold condition car: departure
+    coregion car
+      car ->> carHandler: departReq
+      car ->> cruiser: start
+    end
+    coregion car
+      carHandler ->> car: departAck
+      cruiser ->> car: started
+    end
+    car ->> cruiser: engage
+    condition car: cruising
+    destroy carHandler
+  end
+
+  condition car, proxSensor: cruising
+  proxSensor ->> car: alert100
+
+  subchart "Perform approach"
+    cold condition car: arrival
+    car ->> terminal: arrivReq
+    create carHandler as "CarHandler" by terminal
+    carHandler ->> car: arrivAck
+
+    subchart "Stopping at terminal"
+      cold condition car: mode = stop
+      proxSensor ->> car: alertStop
+      car ->> cruiser: disengage
+      if "Stop at terminal" car: "stops_at->isEmpty=TRUE"
+        car ->> cruiser: stop
+        condition car: idle
+      else "Temporary stop at terminal"
+        timeout car: tm(90)
+        condition car: departure
+      end
+    end
+
+    subchart "Pass through terminal"
+      cold condition car: mode = pass
+      car ->> carHandler: departReq
+      carHandler ->> car: departAck
+      condition car: cruising
+      destroy carHandler
+    end
+  end

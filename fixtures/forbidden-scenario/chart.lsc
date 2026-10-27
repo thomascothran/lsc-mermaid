@@ -1,0 +1,10 @@
+lsc-alpha universal
+  title No arrival request while departing
+  instance car, carHandler
+
+  prechart
+    car ->> carHandler: departReq
+    car ->> carHandler: arrivReq
+  end
+
+  condition car: false

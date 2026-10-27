@@ -160,13 +160,13 @@ The paper defines basic charts formally (Appendix A) and the remaining construct
 7. **Matched, not required.** A pre-chart carries no temperatures: its locations, messages and conditions create no promises and cause no aborts. Pre-chart lines are drawn solid, as in Fig. 4.
 8. **Deviation means not activated.** If the run deviates from the pre-chart, through an out-of-order visible event or a false condition, the body is not activated. Fig. 7 treats pre-chart aborts and cold exits as a legal exit (pp. 58–59); this reading extends that to ordering deviations.
 9. **Hand-over barrier.** Every pre-chart location precedes every body location. The body starts only when the pre-chart has completed (Fig. 7).
-10. **Separate locations.** The pre-chart and the body number their locations separately, as the paper's two automata do (p. 58). The maximal-location rule applies to each.
+10. **Separate locations.** The pre-chart and the body number their locations separately, as the paper's two automata do (p. 58). The maximal-location rule applies to each. Within each part, every lifetime's locations are numbered from 0. Location 0 is the top of the line and carries no events: every instance starts there and no step enters it (pp. 71, 73). Event locations start at 1.
 
 ### Structured constructs
 
-11. **Blocks synchronise.** The entry and exit of every subchart, every `if`/`else` branch and every iteration of a `repeat` is a synchronisation barrier over the block's instances. Barriers behave as shared conditions that are always true (p. 70). This makes the paper's "a subchart with a cold condition at its start is really an if-then branching construct" (p. 56) hold for every instance in the subchart.
-12. **Guards are entry barriers.** If a block's first statement is a condition, that condition is the block's entry barrier. Its variables resolve against the instances it names; for ordering, it is shared by all of the block's instances. The paper draws it across the top border of the frame (pp. 60, 63).
-13. **A block's instances** are those in its `over` list, those used inside it, and its local instances.
+11. **Blocks synchronise.** The entry and exit of every subchart, every `if`/`else` branch and every iteration of a `repeat` is a synchronisation barrier over the block's instances. Barriers behave as shared conditions that are always true (p. 70). Only lifetimes alive at a barrier take part in it: a lifetime created inside a block is not part of the block's entry barrier, and one destroyed inside it is not part of its exit barrier. This makes the paper's "a subchart with a cold condition at its start is really an if-then branching construct" (p. 56) hold for every instance in the subchart.
+12. **Guards are entry barriers.** If a block's first statement is a condition, that condition is the block's entry barrier. Its variables resolve against the instances it names; for ordering, it is shared by all of the block's lifetimes alive at entry. The paper draws it across the top border of the frame (pp. 60, 63).
+13. **A block's instances** are those in its `over` list, those used inside it, and its local instances. A chart with the `subchart` header is itself a block over all its instances: its opening condition is its entry barrier, and it can be left at its cold conditions like any nested subchart.
 14. **Branches are subcharts.** A false cold condition inside an `if` or `else` branch exits that branch only, as each branch has its own "Subchart:" tab (Fig. 10).
 15. **If-then-else** evaluates its guard once, as a cold condition, and exactly one branch runs. Two sequential subcharts guarded by `c` and `not c` are different: each guard is evaluated separately, and local computation steps in between may change `c` (p. 57), so both or neither may run.
 16. **Iteration.** `repeat *` runs until a cold condition inside it is false (p. 56). `repeat n` reads `n` once on entry.
@@ -248,7 +248,7 @@ Meaning lives in keywords. Nothing visual, such as colour or style, carries mean
 ### Labels and expressions
 
 - **Message labels.** A message label is everything after `:` up to the end of the line. Its *name* is the label with any trailing `(…)` removed and whitespace normalised; the parenthesised part is kept as argument text. `setDest(t3)` has the name `setDest`, and `button Pressed` has the name `button Pressed`. Names identify events. `visible` declarations, pre-chart matching and `receive` pairing all match on the name.
-- **Occurrence ids.** The paper assumes unique message names (p. 55). The model satisfies this by giving every message occurrence a unique id (`departReq`, `departReq#2`) and keeping the name unchanged for matching. Users who need to refer to a particular occurrence write a label: `send #first client -) server: data`.
+- **Occurrence ids.** The paper assumes unique message names (p. 55). The model satisfies this by giving every message occurrence a unique id (`departReq`, `departReq#2`) and keeping the name unchanged for matching. Users who need to refer to a particular occurrence write a label: `send #first client -) server: data`. Unlabelled occurrences of a name are numbered in text order (`departReq`, `departReq#2`, `departReq#3`); a labelled occurrence's id is the name and the label (`data#first`). Labels start with a letter, so the two forms never clash.
 - **Condition expressions.** A condition expression is everything after `:` up to the end of the line. A small expression grammar parses it, with:
   - literals: `true`, `false` (also `TRUE`, `FALSE`), integers and enum constants;
   - references: `inst.var`, an unqualified `var`, or a longer dotted path such as `car.stopsAt.isEmpty`, which is kept as an opaque reference;
@@ -693,8 +693,8 @@ interface EventSpec { from: string; to: string; name: string;
                       kind: 'synch' | 'asynch'; dir?: '!' | '?' }  // dir absent = both events
 interface Condition { id: string; instances: string[]; sharedBy: string[];
                       expr: Expr; temp: Temp; locations: LocRef[] }
-                      // instances: as written, for resolution; sharedBy: for ordering (guards: the block's instances)
-interface Barrier { id: string; instances: string[]; locations: LocRef[];
+                      // instances: as written, for resolution; sharedBy: for ordering (guards: the block's lifetimes alive at entry)
+interface Barrier { id: string; instances: string[]; locations: LocRef[];   // instances: lifetimes alive at the barrier
                     at: 'entry' | 'exit'; block: string }
 interface Note { id: string; text: string; row: number; span: SourceSpan;
                  placement: { over: string[] } | { leftOf: string } | { rightOf: string } }
@@ -727,10 +727,10 @@ interface Alternative { kind: 'alt'; id: string; guard: string;      // Conditio
 ### Derived structures
 
 - **Unfoldings.** A basic chart obtained by:
-  - taking every subchart once (a `repeat` is one pass), or leaving it at one of its cold conditions;
+  - taking every subchart once (a `repeat` is one pass), or leaving it at one of its cold conditions; a chart with the `subchart` header counts as a subchart;
   - choosing one branch of each `if … else`.
 
-  Each unfolding records which cold conditions passed and which one, if any, caused an exit. The unfolding in which no cold condition fails is the *main* unfolding of each branch choice. The number of unfoldings is capped (default 256). When the cap is reached, the remaining ones are skipped and a warning is issued.
+  Each unfolding records which cold conditions passed and every cold condition at which a block was left. Sibling and nested blocks can each be left in the same unfolding, so one unfolding may record several exits. The unfolding in which no cold condition fails is the *main* unfolding of each branch choice. The number of unfoldings is capped (default 256). When the cap is reached, the remaining ones are skipped and a warning is issued.
 - **Partial order ≤m.** Computed for each unfolding with these rules:
   - order along an instance line, with locations in one coregion unordered among themselves (reading 3);
   - send before receive (p. 69);
@@ -738,7 +738,7 @@ interface Alternative { kind: 'alt'; id: string; guard: string;      // Conditio
   - shared conditions and barriers act as barriers (p. 70; reading 11);
   - every pre-chart location precedes every body location (reading 9);
   - the creator's creation location precedes the created lifetime's first location (reading 18).
-- **Well-formedness.** ≤m is acyclic in every unfolding, and the text order is a linearisation of it (p. 70).
+- **Well-formedness.** ≤m is acyclic in every unfolding, and the text order is a linearisation of it (p. 70). The paper's rule for shared conditions relates their locations in both directions, so acyclicity is checked after merging the locations of each shared condition, and of each barrier, into one point.
 - **Cuts.** One location per instance, consistent with ≤m (p. 71). Needed later for monitoring and animated play-through.
 
 For a chart without subcharts, alternatives, creation, coregions or a pre-chart, there is exactly one unfolding, and ≤m is the paper's formal partial order.
@@ -767,8 +767,8 @@ Rules checked per unfolding report the unfolding with the diagnostic. A violatio
 
 | # | Rule | Source | Severity |
 | --- | --- | --- | --- |
-| V1 | ≤m is acyclic in every unfolding | A.1, p. 70 | Error |
-| V2 | Maximal locations are cold, in the pre-chart and the body and for each lifetime; `hot progress` for an instance with no further location is rejected | p. 56 | Error |
+| V1 | ≤m is acyclic in every unfolding, once the locations of each shared condition and each barrier are merged into one point | A.1, p. 70 | Error |
+| V2 | Maximal locations are cold, in the pre-chart and the body and for each lifetime; `hot progress` for an instance with no further location is rejected. Checked on main unfoldings only: leaving a block at a cold condition completes it for its instances, so the location where a lifetime stops on such an unfolding need not be cold | p. 56 | Error |
 | V3 | At most one condition per location, including inside `simultaneous` and `coregion` | p. 55 | Error |
 | V4 | At most one `activation on` and at most one `activation when` | p. 51 | Error |
 | V5 | Text order is a linearisation of ≤m; for example, a synchronous sender may not act between its `send` and the matching `receive` | A.1, p. 70 | Error |

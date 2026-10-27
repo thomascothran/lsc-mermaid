@@ -1,0 +1,32 @@
+lsc-alpha subchart
+  title Perform approach
+  instance proxSensor as "Proximity Sensor", cruiser as "Cruiser"
+  instance car as "Car", terminal as "Terminal"
+  var car.mode: {pass, stop}
+  var car.state: {idle, departure, cruising, arrival}
+
+  cold condition car: arrival
+  car ->> terminal: arrivReq
+  create carHandler as "CarHandler" by terminal
+  carHandler ->> car: arrivAck
+
+  subchart "stopping at terminal"
+    cold condition car: mode = stop
+    proxSensor ->> car: alertStop
+    car ->> cruiser: disengage
+    if "Stop at terminal" car: "stopsAt->isEmpty=TRUE"
+      car ->> cruiser: stop
+      condition car: idle
+    else "Temporary stop at terminal"
+      timeout car: tm(90)
+      condition car: departure
+    end
+  end
+
+  subchart "Pass through terminal"
+    cold condition car: mode = pass
+    car ->> carHandler: departReq
+    carHandler ->> car: departAck
+    condition car: cruising
+    destroy carHandler
+  end

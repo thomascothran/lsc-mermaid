@@ -1,0 +1,12 @@
+lsc-alpha universal
+  title Perform approach
+  instance proxSensor, car, carHandler
+
+  prechart
+    carHandler ->> car: departAck
+    proxSensor ->> car: alert100
+  end
+
+  car ->> carHandler: arrivReq
+  cold progress car, carHandler
+  carHandler ->> car: arrivAck
