@@ -615,7 +615,7 @@ The dashed pattern serves several purposes besides temperature, and dotted coreg
 ### Theming, configuration and accessibility
 
 - All colours come from theme variables. The diagram defines `lscFrameColor`, `lscHotColor`, `lscColdColor` and `lscConditionFill`. Their defaults are derived from Mermaid's existing variables (`lineColor`, `primaryColor`, `mainBkg`, `textColor`), and users can override them through `themeVariables`. At port time they are added to all five themes.
-- An `lsc` config block, set in front matter or in a `%%{init}%%` directive, holds:
+- An `lsc` config block, set in front matter or in a `%%{init}%%` directive (site-wide only while the diagram is an external plugin; see §Using the plugin in a page), holds:
   - `showVisibleEvents`: default true;
   - `temperatureCue`: `line`, `line+color` or `line+badge`, for readers who can't rely on dash patterns;
   - `showDiagnostics`;
@@ -831,10 +831,14 @@ The model is the centre. The plugin's db holds a fresh model for each render, an
 
 ```html
 <script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@12/dist/mermaid.esm.min.mjs';
   import lsc from 'https://cdn.jsdelivr.net/npm/mermaid-lsc/dist/mermaid-lsc.esm.mjs';
   await mermaid.registerExternalDiagrams([lsc]);
-  mermaid.initialize({ startOnLoad: true });
+  mermaid.initialize({
+    startOnLoad: true,
+    lsc: { temperatureCue: 'line+badge' },
+    themeVariables: { lscHotColor: '#b03030' },
+  });
 </script>
 
 <pre class="mermaid">
@@ -847,6 +851,8 @@ lsc-alpha universal
 ```
 
 ZenUML is loaded the same way. The package name `mermaid-lsc` is a placeholder. The plugin accepts both `lsc-alpha` and `lsc` as the header keyword, so charts keep working when the notation is declared stable.
+
+As an external plugin, the `lsc` config block and the `lsc*` theme variables are read only from `mermaid.initialize`, as in the example above, so they apply to every chart on the page. Mermaid discards config keys it does not know when they appear in front matter or a `%%{init}%%` directive. Mermaid's own settings, such as `theme`, `title` and its standard theme variables, work per chart as usual, and the `lsc*` colours follow them by default. Per-chart `lsc` settings arrive with the upstream port, when the keys join Mermaid's config schema. The RFC also asks whether external diagrams could register their own config keys, which would lift the limit for every plugin.
 
 Sites that render Mermaid with built-in diagrams only, such as GitHub, GitLab and Obsidian, can't load the plugin. For them, the command-line renderer produces SVG files to embed as images until the diagram is available in Mermaid itself.
 
@@ -921,7 +927,7 @@ The port follows Mermaid's reviewer checklist. These items need work beyond movi
 - [ ] Syntax page under `src/docs/syntax/`, with a docs spec that parses every example
 - [ ] Demo page linked from `demos/index.html`
 - [ ] An entry in `@mermaid-js/examples`, one marked default
-- [ ] Config options in `config.schema.yaml`, types regenerated
+- [ ] Config options in `config.schema.yaml`, types regenerated; tests that the `lsc` block and `lsc*` theme variables take effect from front matter and `%%{init}%%`
 - [ ] Theme variables added to all five themes
 - [ ] New keywords added to `.cspell/mermaid-terms.txt`
 - [ ] Hand-drawn mode implemented, or its absence documented
