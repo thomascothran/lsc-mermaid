@@ -33,6 +33,15 @@ export default defineConfig({
           include: ['test/**/*.test.ts'],
         },
       },
+      {
+        extends: true,
+        test: {
+          name: 'site',
+          root: 'site',
+          environment: 'node',
+          include: ['test/**/*.test.ts'],
+        },
+      },
     ],
   },
 });

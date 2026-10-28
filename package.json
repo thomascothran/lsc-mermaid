@@ -9,6 +9,7 @@
   "scripts": {
     "generate": "pnpm --filter lsc-model run generate",
     "build": "pnpm -r run build",
+    "site": "pnpm --filter lsc-site build",
     "typecheck": "pnpm generate && tsc -b && tsc -p tsconfig.test.json",
     "test": "pnpm generate && vitest run",
     "test:watch": "pnpm generate && vitest",

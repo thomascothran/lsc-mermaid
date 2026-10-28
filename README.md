@@ -14,6 +14,25 @@ package is published yet.
 | ------------------------------------- | ----------------------------------------------------------------------------------- |
 | [`lsc-model`](packages/lsc-model)     | DOM-free Langium parser, semantic model, validator, unfoldings, partial order, JSON |
 | [`mermaid-lsc`](packages/mermaid-lsc) | Mermaid external diagram: layout, renderer, styles; command-line SVG renderer       |
+| [`site`](site)                        | Playground page: live editor, worked examples, gallery (not published)              |
+
+## Playground
+
+`pnpm site` builds a self-contained playground into `site/dist/`. Open
+`site/dist/index.html` straight from disk, or serve the folder from any static host: it uses
+only relative paths and classic scripts, and fetches nothing.
+
+- Edit a chart on the left; the diagram is redrawn as you type, and errors are shown with
+  their line numbers.
+- **Example** loads any of the worked examples. **Gallery** draws them all.
+- **Theme**, **Temperature cue** and **Show diagnostics** set the plugin's options.
+- **Copy link** gives a link that reopens the chart and settings. The address bar keeps that
+  link up to date, and the browser keeps your last chart.
+- **Copy SVG** and **Download SVG** export the diagram.
+- **Syntax cheat-sheet**, under the editor, summarises the notation.
+
+The folder holds `index.html`, `styles.css`, `app.js` (the plugin, the page code and the
+examples), Mermaid's own `mermaid.min.js`, and the licence notices.
 
 ## Using the plugin in a page
 
@@ -111,8 +130,8 @@ Requires Node 20+ and pnpm. On NixOS, `nix shell nixpkgs#pnpm` provides pnpm.
 pnpm install
 pnpm test               # generates the Langium parser, then runs Vitest
 pnpm check              # format check, lint, typecheck and tests (what CI runs)
-pnpm build              # dist/ for both packages, and the browser bundle
-pnpm --filter mermaid-lsc demo   # live editor and all worked examples at http://localhost:4173/
+pnpm build              # dist/ for both packages, the browser bundle and the playground
+pnpm site               # the playground only, into site/dist/
 ```
 
 Tests import workspace packages from their TypeScript sources through the `lsc-source`

@@ -1,0 +1,18 @@
+{
+  "name": "lsc-site",
+  "version": "0.0.0",
+  "description": "A self-contained playground page for Live Sequence Charts in Mermaid",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node build.ts"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^30.0.0",
+    "esbuild": "^0.28.2",
+    "jsdom": "^30.1.3",
+    "mermaid": "^12.2.0",
+    "mermaid-lsc": "workspace:*"
+  }
+}

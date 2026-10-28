@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Sequence Charts for Mermaid — Playground</title>
+    <meta
+      name="description"
+      content="Write Live Sequence Charts in Mermaid-style text and see them rendered as you type."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="2" y="2" width="28" height="28" rx="5" />
+          <path d="M10 7v18M22 7v18" />
+          <path d="M10 12h10l-3-2.5M10 12h10l-3 2.5" />
+          <path class="cold" d="M22 20H12" />
+        </svg>
+        <div>
+          <h1>Live Sequence Charts <span>for Mermaid</span></h1>
+          <p class="tagline">Write a chart on the left. The diagram updates as you type.</p>
+        </div>
+      </div>
+      <nav class="views" aria-label="View">
+        <button type="button" id="view-editor" aria-pressed="true">Editor</button>
+        <button type="button" id="view-gallery" aria-pressed="false">Gallery</button>
+      </nav>
+    </header>
+
+    <div class="toolbar" role="toolbar" aria-label="Chart settings">
+      <label class="field">
+        <span>Example</span>
+        <select id="example">
+          <option value="" hidden>Your chart</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Theme</span>
+        <select id="theme">
+          <option value="default">Default</option>
+          <option value="dark">Dark</option>
+          <option value="forest">Forest</option>
+          <option value="neutral">Neutral</option>
+          <option value="base">Base</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Temperature cue</span>
+        <select id="cue" title="A second way to tell cold from hot, besides dashed lines">
+          <option value="line">Line style only</option>
+          <option value="line+color">Line style + colour</option>
+          <option value="line+badge">Line style + “C” badge</option>
+        </select>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="diagnostics" checked />
+        <span>Show diagnostics</span>
+      </label>
+      <div class="spacer"></div>
+      <div class="actions">
+        <button type="button" id="copy-link" title="Copy a link that reopens this chart">
+          Copy link
+        </button>
+        <button type="button" id="copy-svg">Copy SVG</button>
+        <button type="button" id="download-svg" class="primary">Download SVG</button>
+      </div>
+    </div>
+
+    <main id="editor-view" class="split">
+      <section class="pane source-pane" aria-labelledby="source-label">
+        <div class="pane-head">
+          <h2 id="source-label">Chart text</h2>
+          <span class="hint">Saved in this browser</span>
+        </div>
+        <div class="code">
+          <div class="gutter" id="gutter" aria-hidden="true"></div>
+          <textarea
+            id="source"
+            spellcheck="false"
+            autocapitalize="off"
+            autocomplete="off"
+            wrap="off"
+            aria-labelledby="source-label"
+          ></textarea>
+        </div>
+        <details class="cheatsheet" id="cheatsheet">
+          <summary>Syntax cheat-sheet</summary>
+          <div class="sheet">
+            <section>
+              <h3>Chart</h3>
+              <dl>
+                <dt><code>lsc-alpha universal</code></dt>
+                <dd>
+                  First line. Mode: <code>universal</code> (must happen),
+                  <code>existential</code> (can happen) or <code>subchart</code>.
+                </dd>
+                <dt><code>title Car departure</code></dt>
+                <dd>Shown in the header tab.</dd>
+                <dt><code>defaults cold</code></dt>
+                <dd>Make elements cold unless marked <code>hot</code>. The default is hot.</dd>
+                <dt><code>accTitle: …</code> / <code>accDescr: …</code></dt>
+                <dd>Accessible title and description; <code>accDescr { … }</code> spans lines.</dd>
+                <dt><code>%% comment</code></dt>
+                <dd>Whole lines only.</dd>
+              </dl>
+            </section>
+            <section>
+              <h3>Declarations</h3>
+              <dl>
+                <dt><code>instance car as "Car", carHandler</code></dt>
+                <dd>
+                  Columns, in order. <code>participant</code> works too; <code>actor</code> draws a
+                  stick figure.
+                </dd>
+                <dt><code>var car.mode: {pass, stop}</code></dt>
+                <dd>
+                  Types: <code>bool</code>, <code>int</code>, <code>int[0..9]</code>,
+                  <code>{a, b}</code>.
+                </dd>
+                <dt><code>visible car ->> carHandler: arrivReq</code></dt>
+                <dd>An event the chart constrains but doesn't show.</dd>
+                <dt><code>activation when car.idle</code></dt>
+                <dd>Condition that activates the chart.</dd>
+                <dt><code>activation on env ->> car: setDest</code></dt>
+                <dd>Message that activates it, drawn entering the frame.</dd>
+                <dt><code>prechart</code> … <code>end</code></dt>
+                <dd>
+                  Scenario that, once matched, makes the body required. No
+                  <code>hot</code>/<code>cold</code> inside.
+                </dd>
+              </dl>
+            </section>
+            <section>
+              <h3>Messages</h3>
+              <dl>
+                <dt><code>car ->> carHandler: departReq</code></dt>
+                <dd>Synchronous: filled arrowhead.</dd>
+                <dt><code>car -) cruiser: start(90)</code></dt>
+                <dd>Asynchronous: open arrowhead.</dd>
+                <dt><code>cold car -) cruiser: start</code></dt>
+                <dd>Cold message: dashed line. Dashes never mean replies.</dd>
+                <dt>
+                  <code>send #a client -) server: req</code><br /><code
+                    >receive #a server from client: req</code
+                  >
+                </dt>
+                <dd>Send and receipt at separate points; the label pairs them.</dd>
+                <dt><code>env -) car: setDest</code></dt>
+                <dd>To or from the environment, drawn to the frame edge.</dd>
+              </dl>
+            </section>
+            <section>
+              <h3>Conditions and temperature</h3>
+              <dl>
+                <dt><code>condition car, proxSensor: car.mode = stop</code></dt>
+                <dd>Hot: must hold. Shared by the instances listed.</dd>
+                <dt><code>cold condition car: "stops->isEmpty"</code></dt>
+                <dd>Cold: exits the block when false. Quoted text is not checked.</dd>
+                <dt><code>cold progress car</code></dt>
+                <dd>
+                  Make the line cold from here until the next <code>progress</code> or the block's
+                  end.
+                </dd>
+                <dt>Operators</dt>
+                <dd><code>= != &lt; &lt;= &gt; &gt;= + - * / and or not ( )</code></dd>
+              </dl>
+            </section>
+            <section>
+              <h3>Blocks</h3>
+              <dl>
+                <dt><code>subchart "Retry" over a, b repeat *</code> … <code>end</code></dt>
+                <dd>
+                  Repeat <code>*</code> loops until a cold condition is false; also an int or an int
+                  variable.
+                </dd>
+                <dt><code>if car: car.mode = stop</code> … <code>else</code> … <code>end</code></dt>
+                <dd>Guarded alternatives.</dd>
+                <dt><code>coregion car</code> … <code>end</code></dt>
+                <dd>Events on <code>car</code> in any order.</dd>
+                <dt><code>simultaneous controller</code> … <code>end</code></dt>
+                <dd>Events at one location on the listed instances.</dd>
+              </dl>
+            </section>
+            <section>
+              <h3>Lifetimes and notes</h3>
+              <dl>
+                <dt><code>create carHandler as "Handler" by terminal</code></dt>
+                <dd>Starts a lifetime with a “new” arrow.</dd>
+                <dt><code>destroy carHandler</code></dt>
+                <dd>Ends it with an X.</dd>
+                <dt><code>timeout car: tm(90)</code></dt>
+                <dd>Square self-loop.</dd>
+                <dt><code>note over a, b: text</code></dt>
+                <dd>Also <code>note left of a</code> and <code>note right of a</code>.</dd>
+              </dl>
+            </section>
+          </div>
+        </details>
+      </section>
+
+      <section class="pane preview-pane" aria-labelledby="preview-label">
+        <div class="pane-head">
+          <h2 id="preview-label">Diagram</h2>
+          <span class="status" id="status" role="status"></span>
+        </div>
+        <div class="canvas" id="canvas">
+          <div class="output" id="output"></div>
+          <div class="error" id="error" role="alert" hidden>
+            <strong>The chart can't be drawn yet.</strong>
+            <pre id="error-text"></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <main id="gallery-view" class="gallery" hidden>
+      <p class="gallery-intro">
+        Every worked example from the proposal, drawn with the settings above. The figures follow
+        Damm &amp; Harel's paper; the rest cover the remaining notation.
+      </p>
+      <div class="cards" id="cards"></div>
+    </main>
+
+    <footer class="footer">
+      <span>
+        Notation <code>lsc-alpha</code>: experimental and subject to change.
+        <a href="LICENSE.txt">MIT licence</a> ·
+        <a href="THIRD-PARTY-NOTICES.txt">Third-party notices</a>
+      </span>
+      <span>
+        Based on W. Damm and D. Harel, “LSCs: Breathing Life into Message Sequence Charts”, 2001.
+      </span>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <noscript><p class="noscript">This page needs JavaScript to draw charts.</p></noscript>
+    <script src="mermaid.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -8,5 +8,13 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["node"]
   },
-  "include": ["packages/*/src", "packages/*/test", "fixtures", "vitest.config.ts"]
+  "include": [
+    "packages/*/src",
+    "packages/*/test",
+    "site/src",
+    "site/test",
+    "site/build.ts",
+    "fixtures",
+    "vitest.config.ts"
+  ]
 }

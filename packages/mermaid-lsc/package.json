@@ -27,7 +27,6 @@
   ],
   "scripts": {
     "build": "tsc -b && pnpm bundle",
-    "demo": "pnpm bundle && node demo/serve.mjs",
     "bundle": "esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:mermaid --conditions=lsc-source --minify --sourcemap --legal-comments=linked --outfile=dist/mermaid-lsc.esm.mjs"
   },
   "dependencies": {
