@@ -12,10 +12,8 @@ on earlier ones.
   grows through the tutorial. The paper's rail car appears only in the final lesson (Fig. 10).
 - **Where it lives:** tutorial pages on the published site. Charts are drawn live in each page,
   and each has a "Try it" link that opens it in the playground.
-
-### Open questions
-
-- [ ] Should the exercises have model answers that the reader can reveal?
+- **Exercises:** every exercise has a model answer, hidden until the reader chooses to reveal
+  it.
 
 ### How each lesson works
 
@@ -24,7 +22,8 @@ on earlier ones.
 - **Plain words before terms.** "Column" comes before "instance", and "must/may" comes before
   "hot/cold". Give the proper name once the idea is clear.
 - **One running example**, with a "Try it" link for every chart.
-- **End with a small change to try and one question** to check understanding.
+- **End with a small change to try and one question** to check understanding, each with a
+  model answer the reader can reveal.
 
 ### Part 1: Telling a story
 
