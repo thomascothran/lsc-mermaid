@@ -1,5 +1,6 @@
 // Builds the playground page into site/dist/: index.html, styles, Mermaid's own classic build
-// and one classic script with the plugin, the page code and every worked example. All paths are
+// and one classic script with the plugin, the page code and every worked example. The tutorial
+// goes into site/dist/tutorial/: one page per lesson and a classic script that draws its charts. All paths are
 // relative and nothing is fetched, so the folder opens from file:// and can be served as is.
 //
 //   node site/build.ts [outdir]
@@ -18,6 +19,7 @@ import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { tutorialPages } from './tutorial/pages.ts';
 
 const siteDir = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(siteDir, '..', 'fixtures');
@@ -86,8 +88,11 @@ export async function buildSite(outdir = join(siteDir, 'dist')): Promise<BuildRe
 
   const result = await build({
     absWorkingDir: siteDir,
-    entryPoints: [join(siteDir, 'src', 'main.ts')],
-    outfile: join(outdir, 'app.js'),
+    entryPoints: {
+      app: join(siteDir, 'src', 'main.ts'),
+      'tutorial/tutorial': join(siteDir, 'src', 'tutorial.ts'),
+    },
+    outdir,
     bundle: true,
     format: 'iife',
     platform: 'browser',
@@ -115,6 +120,9 @@ export async function buildSite(outdir = join(siteDir, 'dist')): Promise<BuildRe
   copyFileSync(join(siteDir, '..', 'LICENSE'), join(outdir, 'LICENSE.txt'));
   for (const file of ['index.html', 'styles.css']) {
     copyFileSync(join(siteDir, 'src', file), join(outdir, file));
+  }
+  for (const { file, html } of await tutorialPages()) {
+    writeFileSync(join(outdir, 'tutorial', file), html);
   }
   return { outdir, files: readdirSync(outdir).sort() };
 }

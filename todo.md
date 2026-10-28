@@ -29,57 +29,58 @@ on earlier ones.
 
 No rules yet. A chart is a picture of something that happened.
 
-- [ ] 1. **Who and when.** Each column is a participant, time runs down the page, and an arrow
+- [x] 1. **Who and when.** Each column is a participant, time runs down the page, and an arrow
       is a message. A first chart three lines long. Read the first line,
       `lsc-alpha existential`, as "here is one way things can go"; lesson 6 explains it.
-- [ ] 2. **Names and words.** Titles, display names (`as "Barista"`), message details
+- [x] 2. **Names and words.** Titles, display names (`as "Barista"`), message details
       (`order(latte)`), notes and `%%` comments.
-- [ ] 3. **What comes before what.** Events on one line happen in order. Between two lines, only
+- [x] 3. **What comes before what.** Events on one line happen in order. Between two lines, only
       arrows create order, so two people acting independently have no order relative to each
       other. A chart is a set of "this comes before that" facts, not a single timeline.
-- [ ] 4. **Waiting or not.** `->>` is a hand-over, where both sides act at once. `-)` is posting
+- [x] 4. **Waiting or not.** `->>` is a hand-over, where both sides act at once. `-)` is posting
       a letter: the sender carries on. Then letters that take time to arrive, with `send` and
       `receive` written separately, including crossing and overtaking letters.
-- [ ] 5. **The outside world.** `env` stands for anyone outside the chart, such as a customer
+- [x] 5. **The outside world.** `env` stands for anyone outside the chart, such as a customer
       walking in.
 
 ### Part 2: From stories to rules
 
 The core idea of Live Sequence Charts.
 
-- [ ] 6. **"Can happen" versus "must happen".** An `existential` chart is a possible example and
+- [x] 6. **"Can happen" versus "must happen".** An `existential` chart is a possible example and
       has a dashed frame. A `universal` chart is a rule and has a solid frame.
-- [ ] 7. **When does a rule apply?** A trigger message (`activation on`) or a trigger condition
+- [x] 7. **When does a rule apply?** A trigger message (`activation on`) or a trigger condition
       (`activation when`). A rule with no trigger applies all the time, and the page warns about
       that.
-- [ ] 8. **Setting the scene.** A `prechart` means "once this has happened, then this must
+- [x] 8. **Setting the scene.** A `prechart` means "once this has happened, then this must
       follow". It is drawn as a hexagon frame.
-- [ ] 9. **Must and may, for messages.** Hot messages must happen and are drawn solid. Cold
-      messages may happen and are drawn dashed. Also `defaults cold`, and the temperature-cue
-      setting for readers who can't easily tell dashes apart.
-- [ ] 10. **Must the story carry on?** Each point on a participant's line is hot (the story must
-      move past it) or cold (it may stop there). `cold progress`, and why the last stretch of
-      every line is dashed.
-- [ ] 11. **Facts and checks.** Variables (`var`), conditions and simple expressions (`=`, `and`,
+- [x] 9. **Must the story carry on?** Each point on a participant's line is hot (the story must
+      move past it) or cold (it may stop there). `cold progress`, and why every line's last point
+      is cold.
+- [x] 10. **Must a message arrive?** Hot messages must arrive once sent and are drawn solid. Cold
+      messages may get lost and are drawn dashed, as long as the receiver's line is cold. Also
+      `defaults cold`, and the temperature-cue setting for readers who can't easily tell dashes
+      apart.
+- [x] 11. **Facts and checks.** Variables (`var`), conditions and simple expressions (`=`, `and`,
       `or`, `not`). A hot condition must be true at that point. If a cold condition is false,
       the story ends quietly and nothing is wrong.
-- [ ] 12. **Saying "never".** The forbidden-scenario idiom: a prechart describes the situation,
+- [x] 12. **Saying "never".** The forbidden-scenario idiom: a prechart describes the situation,
       followed by a condition that can never be true.
 
 ### Part 3: Shaping longer stories
 
-- [ ] 13. **Chapters.** Subcharts. Everyone in a subchart starts it together and finishes it
+- [x] 13. **Chapters.** Subcharts. Everyone in a subchart starts it together and finishes it
       together.
-- [ ] 14. **Repeating.** `repeat *` loops until a cold condition fails. `repeat 3` and `repeat n`
+- [x] 14. **Repeating.** `repeat *` loops until a cold condition fails. `repeat 3` and `repeat n`
       repeat a fixed number of times.
-- [ ] 15. **Choices.** `if` … `else`.
-- [ ] 16. **Order doesn't matter, and the same moment.** `coregion` and `simultaneous`.
-- [ ] 17. **Arrivals and departures.** `create`, `destroy` and `timeout`, plus helpers that exist
+- [x] 15. **Choices.** `if` … `else`.
+- [x] 16. **Order doesn't matter, and the same moment.** `coregion` and `simultaneous`.
+- [x] 17. **Arrivals and departures.** `create`, `destroy` and `timeout`, plus helpers that exist
       only inside one chapter.
-- [ ] 18. **Watching without showing.** `visible` events.
+- [x] 18. **Watching without showing.** `visible` events.
 
 ### Part 4: Putting it together
 
-- [ ] 19. **Reading the paper's full rail-car chart (Fig. 10)** one piece at a time.
-- [ ] 20. **When the page complains.** Reading errors and warnings, the common mistakes, and
+- [x] 19. **Reading the paper's full rail-car chart (Fig. 10)** one piece at a time.
+- [x] 20. **When the page complains.** Reading errors and warnings, the common mistakes, and
       exporting and sharing charts.

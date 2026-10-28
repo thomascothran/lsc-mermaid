@@ -14,7 +14,7 @@ package is published yet.
 | ------------------------------------- | ----------------------------------------------------------------------------------- |
 | [`lsc-model`](packages/lsc-model)     | DOM-free Langium parser, semantic model, validator, unfoldings, partial order, JSON |
 | [`mermaid-lsc`](packages/mermaid-lsc) | Mermaid external diagram: layout, renderer, styles; command-line SVG renderer       |
-| [`site`](site)                        | Playground page: live editor, worked examples, gallery (not published)              |
+| [`site`](site)                        | Playground and tutorial pages: live editor, worked examples, gallery, lessons       |
 
 ## Playground
 
@@ -31,9 +31,20 @@ it to <https://thomascothran.github.io/lsc-mermaid/> (`.github/workflows/pages.y
   link up to date, and the browser keeps your last chart.
 - **Copy SVG** and **Download SVG** export the diagram.
 - **Syntax cheat-sheet**, under the editor, summarises the notation.
+- **Tutorial** opens a step-by-step tutorial for readers with no background: twenty short
+  lessons built around a café order, ending with the paper's Fig. 10. Every chart in it is drawn
+  live from editable text, with a link that opens it in the playground. Each lesson ends with
+  something to try and a question, each with a model answer the reader can reveal.
+
+The lessons are Markdown files in `site/tutorial/lessons/`. A fenced ` ```lsc ` block is a live
+chart; add `expect=warning` or `expect=error` when the chart shows a problem on purpose, and
+`cue=line+color` or `cue=line+badge` to set its temperature cue. `:::answer` … `:::` hides a model
+answer, and `:::aside Title` … `:::` is a side note. The site's tests parse, validate and render
+every chart, including the answers, and fail on any problem the chart doesn't expect.
 
 The folder holds `index.html`, `styles.css`, `app.js` (the plugin, the page code and the
-examples), Mermaid's own `mermaid.min.js`, and the licence notices.
+examples), Mermaid's own `mermaid.min.js`, the licence notices, and `tutorial/`: a page per
+lesson and `tutorial.js`, which draws their charts.
 
 ## Using the plugin in a page
 

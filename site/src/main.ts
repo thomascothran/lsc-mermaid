@@ -1,9 +1,10 @@
 // The playground page. Mermaid comes from its classic build as the global `mermaid`; the plugin,
 // this code and the worked examples are bundled into one classic script by site/build.ts.
 
-import type { Mermaid, MermaidConfig } from 'mermaid';
+import type { Mermaid } from 'mermaid';
 import lsc from 'mermaid-lsc';
 import type { Example } from '../build.js';
+import { errorMessage, renderSvg as renderChart, serially } from './render.js';
 import {
   decodeHash,
   defaultSettings,
@@ -59,39 +60,8 @@ let shownSvg = '';
 
 // ---- Rendering ----------------------------------------------------------------------------
 
-function configure(): void {
-  mermaid.initialize({
-    startOnLoad: false,
-    securityLevel: 'strict',
-    theme: settings.theme,
-    // The plugin's own config block; Mermaid passes it through untyped.
-    lsc: { temperatureCue: settings.cue, showDiagnostics: settings.diagnostics },
-  } as MermaidConfig);
-}
-
-// Mermaid renders one diagram at a time, so every render waits for the one before it.
-let queue: Promise<unknown> = Promise.resolve();
-function serially<T>(task: () => Promise<T>): Promise<T> {
-  const run = queue.then(task, task);
-  queue = run.catch(() => undefined);
-  return run;
-}
-
-let renderCount = 0;
 async function renderSvg(text: string): Promise<string> {
-  const id = `lsc-${++renderCount}`;
-  try {
-    configure();
-    return (await mermaid.render(id, text)).svg;
-  } finally {
-    // Mermaid can leave its scratch element behind when a render fails.
-    document.getElementById(`d${id}`)?.remove();
-  }
-}
-
-function errorMessage(error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.trim() || 'Unknown error';
+  return renderChart(mermaid, text, settings);
 }
 
 function errorLines(message: string): Set<number> {
@@ -390,6 +360,8 @@ function showView(view: 'editor' | 'gallery'): void {
   ui.viewGallery.setAttribute('aria-pressed', String(gallery));
   updateButtons();
   if (gallery) void renderGallery();
+  // Leaving the gallery replaces a `#view=gallery` link with the chart's own link.
+  else if (linkedView() !== null) scheduleHashUpdate();
 }
 
 function openExample(name: string): void {
@@ -407,6 +379,11 @@ function openExample(name: string): void {
 }
 
 // ---- Wiring -------------------------------------------------------------------------------
+
+/** The view a link asks for with `#view=gallery`, as the tutorial's Gallery link does. */
+function linkedView(): string | null {
+  return new URLSearchParams(location.hash.replace(/^#/, '')).get('view');
+}
 
 function fillExampleMenu(): void {
   const groups: Record<Example['group'], string> = {
@@ -473,6 +450,7 @@ function wire(): void {
 
   // Opening a link in the same tab only changes the hash.
   window.addEventListener('hashchange', async () => {
+    if (linkedView() === 'gallery') showView('gallery');
     const linked = await decodeHash(location.hash);
     if (linked.text === undefined || linked.text === ui.source.value) return;
     applySettings(readSettings(linked));
@@ -496,6 +474,7 @@ async function start(): Promise<void> {
   updateButtons();
   save();
   await renderEditor();
+  if (linkedView() === 'gallery') showView('gallery');
   document.body.dataset.ready = 'true';
 }
 

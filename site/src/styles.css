@@ -105,14 +105,16 @@ input {
   stroke-dasharray: 2.5 2.5;
 }
 
-h1 {
+.brand h1,
+.brand-title {
   margin: 0;
   font-size: 1.15rem;
   font-weight: 650;
   letter-spacing: -0.01em;
 }
 
-h1 span {
+.brand h1 span,
+.brand-title span {
   color: var(--muted);
   font-weight: 500;
 }
@@ -131,7 +133,8 @@ h1 span {
   background: var(--surface-2);
 }
 
-.views button {
+.views button,
+.views a {
   border: 0;
   background: none;
   padding: 0.35rem 0.95rem;
@@ -140,7 +143,17 @@ h1 span {
   color: var(--muted);
 }
 
-.views button[aria-pressed='true'] {
+.views a {
+  text-decoration: none;
+}
+
+.views a:hover,
+.views button:hover {
+  color: var(--text);
+}
+
+.views button[aria-pressed='true'],
+.views a[aria-current='page'] {
   background: var(--surface);
   color: var(--text);
   box-shadow: var(--shadow);
@@ -621,5 +634,442 @@ textarea {
   .toast,
   .output {
     transition: none;
+  }
+}
+
+/* Tutorial */
+
+a.brand {
+  color: inherit;
+  text-decoration: none;
+}
+
+.tutorial {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 17rem minmax(0, 1fr);
+  gap: 2rem;
+  padding: 1.5rem;
+  max-width: 82rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.lessons {
+  font-size: 0.88rem;
+}
+
+.lessons details {
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+}
+
+.lessons summary {
+  display: none;
+}
+
+.lessons ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lessons a {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.lessons a:hover {
+  background: var(--surface-2);
+}
+
+.lessons a[aria-current='page'] {
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  outline: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.lessons .num {
+  min-width: 1.4rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.part-title {
+  margin: 1.1rem 0 0.3rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.contents-link {
+  margin: 0;
+}
+
+.lesson {
+  min-width: 0;
+}
+
+.lesson article {
+  max-width: 46rem;
+  line-height: 1.65;
+}
+
+.lesson h1 {
+  margin: 0.2rem 0 1rem;
+  font-size: 2rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.lesson h2 {
+  margin: 2.4rem 0 0.6rem;
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+
+.lesson h3 {
+  margin: 1.8rem 0 0.4rem;
+  font-size: 1.08rem;
+}
+
+.lesson a {
+  color: var(--accent);
+}
+
+.lesson :not(pre) > code {
+  font-size: 0.88em;
+  padding: 0.08rem 0.3rem;
+  border-radius: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.kicker {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.lesson table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.92rem;
+}
+
+.lesson th,
+.lesson td {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.lesson th {
+  background: var(--surface-2);
+}
+
+pre.snippet {
+  margin: 1rem 0;
+  padding: 0.75rem 0.9rem;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--code-bg);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.lsc-example {
+  margin: 1.4rem 0;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.lsc-example .figure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 8rem;
+  padding: 1rem;
+  overflow-x: auto;
+  background: #ffffff;
+  transition: opacity 0.15s;
+}
+
+.lsc-example .figure.stale {
+  opacity: 0.35;
+}
+
+.lsc-example .figure svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.lsc-example .pending {
+  color: #7a8394;
+}
+
+.example-error {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  border-top: 1px solid var(--danger);
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.example-error pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.example-source {
+  border-top: 1px solid var(--border);
+  background: var(--code-bg);
+}
+
+.example-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  padding: 0.4rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.example-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.example-actions button {
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.example-actions a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.example-source textarea {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.example-source textarea:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.answer {
+  margin: 1rem 0 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--surface);
+}
+
+.answer summary {
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent);
+  user-select: none;
+}
+
+.answer[open] summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.answer-body {
+  padding: 0.1rem 0.9rem 0.2rem;
+}
+
+.answer-body .lsc-example {
+  box-shadow: none;
+}
+
+.aside {
+  margin: 1.4rem 0;
+  padding: 0.2rem 1rem;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface);
+}
+
+.aside-title {
+  margin: 0.7rem 0 -0.4rem;
+  font-weight: 650;
+}
+
+.pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 3rem 0 1rem;
+}
+
+.pager a {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.pager a:hover {
+  border-color: var(--accent);
+}
+
+.pager a span {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.pager .next {
+  grid-column: 2;
+  text-align: right;
+}
+
+.part h2 {
+  margin-bottom: 0.2rem;
+}
+
+.part > p {
+  margin: 0 0 0.8rem;
+  color: var(--muted);
+}
+
+.lesson-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.lesson-cards a {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1.45;
+}
+
+.lesson-cards a:hover {
+  border-color: var(--accent);
+}
+
+.lesson-cards .num {
+  min-width: 1.6rem;
+  font-size: 1.2rem;
+  font-weight: 650;
+  color: var(--accent);
+  text-align: right;
+}
+
+.lesson-cards .summary {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 960px) {
+  .tutorial {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .lessons details {
+    position: static;
+    max-height: none;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) + 2px);
+    background: var(--surface);
+    padding: 0 0.5rem 0.5rem;
+  }
+
+  .lessons summary {
+    display: list-item;
+    padding: 0.6rem 0.3rem 0.1rem;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .lessons details:not([open]) {
+    padding-bottom: 0.1rem;
+  }
+
+  .lesson h1 {
+    font-size: 1.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lsc-example .figure {
+    transition: none;
+  }
+}
+
+.lesson blockquote {
+  margin: 1.2rem 0;
+  padding: 0.6rem 1rem;
+  border-left: 4px solid var(--accent);
+  background: var(--surface);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 1.05rem;
+}
+
+.lesson blockquote p {
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .brand {
+    flex: 1 1 100%;
+  }
+
+  .tagline {
+    display: none;
   }
 }
