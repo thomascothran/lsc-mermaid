@@ -20,7 +20,8 @@ package is published yet.
 
 `pnpm site` builds a self-contained playground into `site/dist/`. Open
 `site/dist/index.html` straight from disk, or serve the folder from any static host: it uses
-only relative paths and classic scripts, and fetches nothing.
+only relative paths and classic scripts, and fetches nothing. Each push to `master` publishes
+it to <https://thomascothran.github.io/lsc-mermaid/> (`.github/workflows/pages.yml`).
 
 - Edit a chart on the left; the diagram is redrawn as you type, and errors are shown with
   their line numbers.
