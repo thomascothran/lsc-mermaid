@@ -5,7 +5,8 @@ Live Sequence Charts (Damm & Harel, 2001) as a Mermaid diagram type. The design 
 
 Status: the model library (`lsc-model`) reads the full notation and builds the semantic model,
 with validation, unfoldings, the partial order and JSON. The Mermaid plugin (`mermaid-lsc`)
-renders every element of the notation, and its command-line renderer writes SVG. Neither
+renders every element of the notation, and its command-line renderer writes SVG. Basic charts
+run as monitors in [pavlov](https://github.com/thomascothran/pavlov) through `lsc-pavlov`. No
 package is published yet.
 
 ## Packages
@@ -14,6 +15,7 @@ package is published yet.
 | ------------------------------------- | ----------------------------------------------------------------------------------- |
 | [`lsc-model`](packages/lsc-model)     | DOM-free Langium parser, semantic model, validator, unfoldings, partial order, JSON |
 | [`mermaid-lsc`](packages/mermaid-lsc) | Mermaid external diagram: layout, renderer, styles; command-line SVG renderer       |
+| [`lsc-pavlov`](packages/lsc-pavlov)   | Clojure(Script): runs a chart's skeleton automaton as a pavlov b-thread (EPL-1.0)   |
 | [`site`](site)                        | Playground and tutorial pages: live editor, worked examples, gallery, lessons       |
 
 ## Playground
@@ -116,6 +118,12 @@ import { renderSvg } from 'mermaid-lsc/node';
 const { svg, diagnostics } = await renderSvg(text, { config: { theme: 'forest' } });
 ```
 
+Add `--automaton` to write the chart's skeleton automaton as JSON instead, for `lsc-pavlov`:
+
+```sh
+mermaid-lsc --automaton chart.lsc -o chart.json
+```
+
 ## Using `lsc-model`
 
 ```ts
@@ -134,6 +142,15 @@ the rules checked on the model's unfoldings and partial order (V1, V2, V5, V8) a
 the rules marked ✱ in the proposal (`isBlocking`). `parseLsc(text, { firstLine })` numbers
 lines from `firstLine`, for text cut out of a larger document.
 
+`skeletonAutomaton(model)` returns `{ automaton, diagnostics }`: the state machine of a basic
+chart, or errors A1–A6 naming the constructs it doesn't support (subcharts, `simultaneous`,
+lifetimes, `activation when`, too many states, invalid charts).
+
+## Running charts in pavlov
+
+[`packages/lsc-pavlov`](packages/lsc-pavlov) turns the JSON automaton into a pavlov b-thread, so
+pavlov's model checker can check a behavioural program against the chart. See its README.
+
 ## Development
 
 Requires Node 20+ and pnpm. On NixOS, `nix shell nixpkgs#pnpm` provides pnpm.
@@ -149,6 +166,11 @@ pnpm site               # the playground only, into site/dist/
 Tests import workspace packages from their TypeScript sources through the `lsc-source`
 export condition, so no build is needed before testing.
 
+**Automata.** The skeleton automata of the supported fixtures are committed in
+`packages/lsc-pavlov/test/resources/automata/`, where the Clojure tests read them. After an
+intended change, run `pnpm automata:update`. The Clojure tests run with `clojure -X:test` in
+`packages/lsc-pavlov` (CI runs them too).
+
 **Visual baselines.** Every fixture's SVG, rendered through Mermaid, is compared with
 `packages/mermaid-lsc/test/baselines/<fixture>.svg`. After an intended rendering change, run
 `pnpm baselines:update` and review `packages/mermaid-lsc/test/baselines/index.html` in a
@@ -161,4 +183,4 @@ swapped for in-tree equivalents when the diagram is ported into Mermaid.
 
 ## Licence
 
-MIT
+MIT, except `packages/lsc-pavlov`, which is EPL-1.0 like pavlov and Clojure.

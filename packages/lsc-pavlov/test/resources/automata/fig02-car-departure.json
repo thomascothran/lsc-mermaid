@@ -1,0 +1,254 @@
+{
+  "automatonVersion": 1,
+  "mode": "universal",
+  "title": "Car departure",
+  "events": [
+    {
+      "from": "car",
+      "to": "carHandler",
+      "name": "departReq",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "carHandler",
+      "to": "car",
+      "name": "departAck",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "car",
+      "to": "cruiser",
+      "name": "start",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "cruiser",
+      "to": "car",
+      "name": "started",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "car",
+      "to": "cruiser",
+      "name": "engage",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "env",
+      "to": "car",
+      "name": "setDest",
+      "kind": "synch",
+      "visible": false
+    }
+  ],
+  "activation": 5,
+  "conditions": [],
+  "start": 4,
+  "states": [
+    {
+      "id": 0,
+      "kind": "outcome",
+      "outcome": "completed"
+    },
+    {
+      "id": 1,
+      "kind": "outcome",
+      "outcome": "exit"
+    },
+    {
+      "id": 2,
+      "kind": "outcome",
+      "outcome": "abort"
+    },
+    {
+      "id": 3,
+      "kind": "outcome",
+      "outcome": "not-activated"
+    },
+    {
+      "id": 4,
+      "kind": "wait",
+      "phase": "inactive",
+      "hot": false,
+      "on": [
+        [
+          5,
+          5
+        ]
+      ],
+      "deviation": "ignore",
+      "cut": [
+        {
+          "instance": "cruiser",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          0,
+          6
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "cruiser",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          1,
+          7
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "cruiser",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          2,
+          8
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "cruiser",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          3,
+          9
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "cruiser",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 3
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          4,
+          0
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "cruiser",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 4
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    }
+  ]
+}

@@ -54,6 +54,27 @@ describe('mermaid-lsc command line', () => {
     expect(t.out).toEqual([]);
   });
 
+  it('writes the skeleton automaton as JSON with --automaton', async () => {
+    const t = io({ 'ping.lsc': `---\ntitle: Front\n---\n${CHART}` });
+    expect(await runCli(['--automaton', '-o', 'ping.json', 'ping.lsc'], t.io)).toBe(0);
+    const automaton = JSON.parse(t.written['ping.json']!) as { mode: string; events: unknown[] };
+    expect(automaton).toMatchObject({
+      automatonVersion: 1,
+      mode: 'universal',
+      title: 'Ping',
+      events: [{ from: 'a', to: 'b', name: 'ping', kind: 'synch', visible: true }],
+    });
+    // Lines count the front matter.
+    expect(t.err.join('')).toMatch(/^ping\.lsc:4:1: warning V11: /);
+  });
+
+  it('reports charts the automaton does not support and exits with 1', async () => {
+    const t = io({}, 'lsc-alpha existential\n  subchart\n    a ->> b: m\n  end');
+    expect(await runCli(['--automaton', '-q'], t.io)).toBe(1);
+    expect(t.err.join('')).toMatch(/^<stdin>:\d+:\d+: error A1: Subcharts are not supported/);
+    expect(t.out).toEqual([]);
+  });
+
   it('refuses other diagram types', async () => {
     const t = io({ 'seq.mmd': 'sequenceDiagram\n  a->>b: hi' });
     expect(await runCli(['seq.mmd'], t.io)).toBe(1);

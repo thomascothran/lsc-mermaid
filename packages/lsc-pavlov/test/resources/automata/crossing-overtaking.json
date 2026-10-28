@@ -1,0 +1,395 @@
+{
+  "automatonVersion": 1,
+  "mode": "existential",
+  "title": "Crossing and overtaking",
+  "events": [
+    {
+      "from": "client",
+      "to": "server",
+      "name": "request",
+      "kind": "asynch",
+      "dir": "!",
+      "visible": true
+    },
+    {
+      "from": "client",
+      "to": "server",
+      "name": "request",
+      "kind": "asynch",
+      "dir": "?",
+      "visible": true
+    },
+    {
+      "from": "server",
+      "to": "client",
+      "name": "notify",
+      "kind": "asynch",
+      "dir": "!",
+      "visible": true
+    },
+    {
+      "from": "server",
+      "to": "client",
+      "name": "notify",
+      "kind": "asynch",
+      "dir": "?",
+      "visible": true
+    },
+    {
+      "from": "client",
+      "to": "server",
+      "name": "data",
+      "kind": "asynch",
+      "dir": "!",
+      "visible": true
+    },
+    {
+      "from": "client",
+      "to": "server",
+      "name": "data",
+      "kind": "asynch",
+      "dir": "?",
+      "visible": true
+    }
+  ],
+  "conditions": [],
+  "start": 4,
+  "states": [
+    {
+      "id": 0,
+      "kind": "outcome",
+      "outcome": "completed"
+    },
+    {
+      "id": 1,
+      "kind": "outcome",
+      "outcome": "exit"
+    },
+    {
+      "id": 2,
+      "kind": "outcome",
+      "outcome": "abort"
+    },
+    {
+      "id": 3,
+      "kind": "outcome",
+      "outcome": "not-activated"
+    },
+    {
+      "id": 4,
+      "kind": "wait",
+      "phase": "body",
+      "hot": false,
+      "on": [
+        [
+          0,
+          5
+        ],
+        [
+          2,
+          6
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          2,
+          7
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          0,
+          7
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          1,
+          8
+        ],
+        [
+          3,
+          9
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          3,
+          10
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          1,
+          10
+        ],
+        [
+          4,
+          11
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          4,
+          12
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          1,
+          12
+        ],
+        [
+          4,
+          13
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 3
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          4,
+          14
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 3
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          1,
+          14
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 4
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          5,
+          15
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 4
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          5,
+          0
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "client",
+          "part": "body",
+          "index": 4
+        },
+        {
+          "instance": "server",
+          "part": "body",
+          "index": 3
+        }
+      ]
+    }
+  ]
+}

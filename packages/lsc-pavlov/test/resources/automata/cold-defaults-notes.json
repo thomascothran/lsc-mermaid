@@ -1,0 +1,337 @@
+{
+  "automatonVersion": 1,
+  "mode": "existential",
+  "title": "Checkout",
+  "events": [
+    {
+      "from": "shopper",
+      "to": "shop",
+      "name": "checkout",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "shop",
+      "to": "end",
+      "name": "charge",
+      "kind": "asynch",
+      "dir": "!",
+      "visible": true
+    },
+    {
+      "from": "shop",
+      "to": "end",
+      "name": "charge",
+      "kind": "asynch",
+      "dir": "?",
+      "visible": true
+    },
+    {
+      "from": "end",
+      "to": "shop",
+      "name": "charged",
+      "kind": "asynch",
+      "dir": "!",
+      "visible": true
+    },
+    {
+      "from": "end",
+      "to": "shop",
+      "name": "charged",
+      "kind": "asynch",
+      "dir": "?",
+      "visible": true
+    },
+    {
+      "from": "shop",
+      "to": "shopper",
+      "name": "thanks",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "shop",
+      "to": "shopper",
+      "name": "receipt",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "end",
+      "to": "shop",
+      "name": "refund",
+      "kind": "asynch",
+      "dir": "?",
+      "visible": true
+    }
+  ],
+  "conditions": [
+    {
+      "id": "c1",
+      "text": "total > 0 and not paid",
+      "temp": "hot",
+      "part": "body"
+    },
+    {
+      "id": "c2",
+      "text": "paid",
+      "temp": "cold",
+      "part": "body"
+    }
+  ],
+  "start": 4,
+  "states": [
+    {
+      "id": 0,
+      "kind": "outcome",
+      "outcome": "completed"
+    },
+    {
+      "id": 1,
+      "kind": "outcome",
+      "outcome": "exit"
+    },
+    {
+      "id": 2,
+      "kind": "outcome",
+      "outcome": "abort"
+    },
+    {
+      "id": 3,
+      "kind": "outcome",
+      "outcome": "not-activated"
+    },
+    {
+      "id": 4,
+      "kind": "wait",
+      "phase": "body",
+      "hot": false,
+      "on": [
+        [
+          0,
+          5
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "shopper",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "shop",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "end",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "condition",
+      "phase": "body",
+      "hot": true,
+      "condition": 0,
+      "ifTrue": 6,
+      "ifFalse": 2,
+      "cut": [
+        {
+          "instance": "shopper",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "shop",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "end",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          1,
+          7
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "shopper",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "shop",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "end",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          2,
+          8
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "shopper",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "shop",
+          "part": "body",
+          "index": 3
+        },
+        {
+          "instance": "end",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          3,
+          9
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "shopper",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "shop",
+          "part": "body",
+          "index": 3
+        },
+        {
+          "instance": "end",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "wait",
+      "phase": "body",
+      "hot": false,
+      "on": [
+        [
+          4,
+          10
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "shopper",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "shop",
+          "part": "body",
+          "index": 3
+        },
+        {
+          "instance": "end",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "kind": "condition",
+      "phase": "body",
+      "hot": false,
+      "condition": 1,
+      "ifTrue": 11,
+      "ifFalse": 1,
+      "cut": [
+        {
+          "instance": "shopper",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "shop",
+          "part": "body",
+          "index": 4
+        },
+        {
+          "instance": "end",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "kind": "wait",
+      "phase": "body",
+      "hot": false,
+      "on": [
+        [
+          5,
+          0
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "shopper",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "shop",
+          "part": "body",
+          "index": 5
+        },
+        {
+          "instance": "end",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    }
+  ]
+}

@@ -4,3 +4,6 @@ dist/
 coverage/
 *.tsbuildinfo
 packages/lsc-model/src/language/generated/
+.cpcache/
+.clj-kondo/.cache/
+.lsp/

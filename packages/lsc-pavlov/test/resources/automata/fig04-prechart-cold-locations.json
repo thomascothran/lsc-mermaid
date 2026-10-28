@@ -1,0 +1,179 @@
+{
+  "automatonVersion": 1,
+  "mode": "universal",
+  "title": "Perform approach",
+  "events": [
+    {
+      "from": "carHandler",
+      "to": "car",
+      "name": "departAck",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "proxSensor",
+      "to": "car",
+      "name": "alert100",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "car",
+      "to": "carHandler",
+      "name": "arrivReq",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "carHandler",
+      "to": "car",
+      "name": "arrivAck",
+      "kind": "synch",
+      "visible": true
+    }
+  ],
+  "conditions": [],
+  "start": 4,
+  "states": [
+    {
+      "id": 0,
+      "kind": "outcome",
+      "outcome": "completed"
+    },
+    {
+      "id": 1,
+      "kind": "outcome",
+      "outcome": "exit"
+    },
+    {
+      "id": 2,
+      "kind": "outcome",
+      "outcome": "abort"
+    },
+    {
+      "id": 3,
+      "kind": "outcome",
+      "outcome": "not-activated"
+    },
+    {
+      "id": 4,
+      "kind": "wait",
+      "phase": "prechart",
+      "hot": false,
+      "on": [
+        [
+          0,
+          5
+        ]
+      ],
+      "deviation": "ignore",
+      "cut": [
+        {
+          "instance": "proxSensor",
+          "part": "prechart",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "prechart",
+          "index": 0
+        },
+        {
+          "instance": "carHandler",
+          "part": "prechart",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "wait",
+      "phase": "prechart",
+      "hot": false,
+      "on": [
+        [
+          1,
+          6
+        ]
+      ],
+      "deviation": "not-activated",
+      "cut": [
+        {
+          "instance": "proxSensor",
+          "part": "prechart",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "prechart",
+          "index": 1
+        },
+        {
+          "instance": "carHandler",
+          "part": "prechart",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          2,
+          7
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "proxSensor",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "wait",
+      "phase": "body",
+      "hot": false,
+      "on": [
+        [
+          3,
+          0
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "proxSensor",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    }
+  ]
+}

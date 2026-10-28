@@ -14,6 +14,7 @@
     "test": "pnpm generate && vitest run",
     "test:watch": "pnpm generate && vitest",
     "baselines:update": "pnpm generate && vitest run --project mermaid-lsc --update test/baselines.test.ts",
+    "automata:update": "pnpm generate && vitest run --project lsc-model --update test/automaton.test.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

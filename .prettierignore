@@ -3,3 +3,4 @@ dist/
 **/generated/
 docs/
 fixtures/*/expected.ts
+packages/lsc-pavlov/test/resources/

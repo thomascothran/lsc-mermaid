@@ -1,0 +1,489 @@
+{
+  "automatonVersion": 1,
+  "mode": "universal",
+  "title": "Visible events",
+  "events": [
+    {
+      "from": "env",
+      "to": "car",
+      "name": "setDest",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "car",
+      "to": "carHandler",
+      "name": "departReq",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "passenger",
+      "to": "destPanel",
+      "name": "pressButton",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "carHandler",
+      "to": "car",
+      "name": "departAck",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "destPanel",
+      "to": "passenger",
+      "name": "flashSign",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "car",
+      "to": "carHandler",
+      "name": "arrivReq",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "carHandler",
+      "to": "car",
+      "name": "arrivAck",
+      "kind": "synch",
+      "visible": true
+    }
+  ],
+  "conditions": [],
+  "start": 4,
+  "states": [
+    {
+      "id": 0,
+      "kind": "outcome",
+      "outcome": "completed"
+    },
+    {
+      "id": 1,
+      "kind": "outcome",
+      "outcome": "exit"
+    },
+    {
+      "id": 2,
+      "kind": "outcome",
+      "outcome": "abort"
+    },
+    {
+      "id": 3,
+      "kind": "outcome",
+      "outcome": "not-activated"
+    },
+    {
+      "id": 4,
+      "kind": "wait",
+      "phase": "body",
+      "hot": false,
+      "on": [
+        [
+          0,
+          5
+        ],
+        [
+          2,
+          6
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "destPanel",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "passenger",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          1,
+          7
+        ],
+        [
+          2,
+          8
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "destPanel",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "passenger",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          0,
+          8
+        ],
+        [
+          4,
+          9
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "destPanel",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "passenger",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          2,
+          10
+        ],
+        [
+          3,
+          11
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "destPanel",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "passenger",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          1,
+          10
+        ],
+        [
+          4,
+          12
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "destPanel",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "passenger",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          0,
+          12
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "destPanel",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "passenger",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          3,
+          13
+        ],
+        [
+          4,
+          14
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "destPanel",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "passenger",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          2,
+          13
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 3
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "destPanel",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "passenger",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          1,
+          14
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "destPanel",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "passenger",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          4,
+          0
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 3
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "destPanel",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "passenger",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          3,
+          0
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "destPanel",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "passenger",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    }
+  ]
+}

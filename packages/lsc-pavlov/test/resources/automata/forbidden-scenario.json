@@ -1,0 +1,124 @@
+{
+  "automatonVersion": 1,
+  "mode": "universal",
+  "title": "No arrival request while departing",
+  "events": [
+    {
+      "from": "car",
+      "to": "carHandler",
+      "name": "departReq",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "car",
+      "to": "carHandler",
+      "name": "arrivReq",
+      "kind": "synch",
+      "visible": true
+    }
+  ],
+  "conditions": [
+    {
+      "id": "c1",
+      "text": "false",
+      "temp": "hot",
+      "part": "body",
+      "value": false
+    }
+  ],
+  "start": 4,
+  "states": [
+    {
+      "id": 0,
+      "kind": "outcome",
+      "outcome": "completed"
+    },
+    {
+      "id": 1,
+      "kind": "outcome",
+      "outcome": "exit"
+    },
+    {
+      "id": 2,
+      "kind": "outcome",
+      "outcome": "abort"
+    },
+    {
+      "id": 3,
+      "kind": "outcome",
+      "outcome": "not-activated"
+    },
+    {
+      "id": 4,
+      "kind": "wait",
+      "phase": "prechart",
+      "hot": false,
+      "on": [
+        [
+          0,
+          5
+        ]
+      ],
+      "deviation": "ignore",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "prechart",
+          "index": 0
+        },
+        {
+          "instance": "carHandler",
+          "part": "prechart",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "wait",
+      "phase": "prechart",
+      "hot": false,
+      "on": [
+        [
+          1,
+          6
+        ]
+      ],
+      "deviation": "not-activated",
+      "cut": [
+        {
+          "instance": "car",
+          "part": "prechart",
+          "index": 1
+        },
+        {
+          "instance": "carHandler",
+          "part": "prechart",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "condition",
+      "phase": "body",
+      "hot": true,
+      "condition": 0,
+      "ifTrue": 0,
+      "ifFalse": 2,
+      "cut": [
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    }
+  ]
+}

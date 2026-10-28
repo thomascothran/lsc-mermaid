@@ -1,0 +1,241 @@
+{
+  "automatonVersion": 1,
+  "mode": "existential",
+  "title": "Car stopping at terminal",
+  "events": [
+    {
+      "from": "car",
+      "to": "carHandler",
+      "name": "arrivReq",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "carHandler",
+      "to": "car",
+      "name": "arrivAck",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "proxSensor",
+      "to": "car",
+      "name": "alertStop",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "car",
+      "to": "cruiser",
+      "name": "disengage",
+      "kind": "synch",
+      "visible": true
+    },
+    {
+      "from": "car",
+      "to": "cruiser",
+      "name": "stop",
+      "kind": "synch",
+      "visible": true
+    }
+  ],
+  "conditions": [],
+  "start": 4,
+  "states": [
+    {
+      "id": 0,
+      "kind": "outcome",
+      "outcome": "completed"
+    },
+    {
+      "id": 1,
+      "kind": "outcome",
+      "outcome": "exit"
+    },
+    {
+      "id": 2,
+      "kind": "outcome",
+      "outcome": "abort"
+    },
+    {
+      "id": 3,
+      "kind": "outcome",
+      "outcome": "not-activated"
+    },
+    {
+      "id": 4,
+      "kind": "wait",
+      "phase": "body",
+      "hot": false,
+      "on": [
+        [
+          0,
+          5
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "proxSensor",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "cruiser",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          1,
+          6
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "proxSensor",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "cruiser",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          2,
+          7
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "proxSensor",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "cruiser",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 2
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          3,
+          8
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "proxSensor",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "cruiser",
+          "part": "body",
+          "index": 0
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 3
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "wait",
+      "phase": "body",
+      "hot": true,
+      "on": [
+        [
+          4,
+          0
+        ]
+      ],
+      "deviation": "abort",
+      "cut": [
+        {
+          "instance": "proxSensor",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "cruiser",
+          "part": "body",
+          "index": 1
+        },
+        {
+          "instance": "car",
+          "part": "body",
+          "index": 4
+        },
+        {
+          "instance": "carHandler",
+          "part": "body",
+          "index": 2
+        }
+      ]
+    }
+  ]
+}

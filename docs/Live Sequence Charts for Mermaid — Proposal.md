@@ -8,7 +8,7 @@ We propose a new Mermaid diagram type that renders Live Sequence Charts (Damm & 
 
 We found no open-source JavaScript tool that does this. We will build it first as an external Mermaid plugin, loaded the same way as ZenUML, and follow Mermaid's contribution conventions from the start. Once the notation has settled, we will open an RFC and then an upstream pull request.
 
-The parser produces a semantic LSC model, not a list of drawing instructions. The renderer draws from that model. The same model can later feed validation, JSON export and runtime monitoring.
+The parser produces a semantic LSC model, not a list of drawing instructions. The renderer draws from that model. The same model feeds validation, JSON export and a state machine that runs a chart as a monitor in [pavlov](https://github.com/thomascothran/pavlov), a behavioural programming library for Clojure.
 
 Page references are to Damm & Harel, "LSCs: Breathing Life into Message Sequence Charts", *Formal Methods in System Design* 19, 45–80, 2001.
 
@@ -25,10 +25,11 @@ The goal is a chart that is semantically an LSC, written as text and rendered in
 - Charts embed in any page that loads Mermaid and the plugin, with Mermaid's theming, accessibility and error reporting. A command-line renderer produces static SVG for sites that can't load Mermaid plugins, such as GitHub, GitLab and Obsidian.
 - Static checks catch ill-formed charts, for example a cyclic partial order, and report line and column.
 - Mergeable upstream: built to Mermaid's reviewer checklist.
+- Basic charts run as monitors in pavlov, so its model checker can check a program against them (§Skeleton automaton and pavlov).
 
 **Non-goals for the first release**
 
-- Executing charts (play-out), model checking or synthesis.
+- Executing charts (play-out) and synthesis. Model checking is pavlov's job; this project supplies the monitors.
 - Real-time constraints, symbolic instances and the later Play-Engine extensions (kept as extension points).
 - A graphical editor. Text is the source of truth.
 - Multi-chart specifications in one Mermaid block, and references from one chart to another. One block is one chart. The keyword `ref` is reserved for chart references.
@@ -144,7 +145,7 @@ Two idioms follow from these rules, so they don't need elements of their own:
 
 ## Semantic readings
 
-The paper defines basic charts formally (Appendix A) and the remaining constructs informally. In a few places the appendix, read literally, contradicts the paper's prose or figures. This section states the readings the notation adopts. The validator, `partialOrder()` and any future monitor use them.
+The paper defines basic charts formally (Appendix A) and the remaining constructs informally. In a few places the appendix, read literally, contradicts the paper's prose or figures. This section states the readings the notation adopts. The validator, `partialOrder()` and the skeleton automaton use them.
 
 ### Readings of the formal core
 
@@ -173,6 +174,13 @@ The paper defines basic charts formally (Appendix A) and the remaining construct
 17. **Lifetimes.** After `destroy x`, a later `create x` introduces a new instance that shares `x`'s column and label. Each lifetime is a distinct member of the chart's instance set, and its destruction location is its maximal location, so it is cold. A plain reference to `x` means the lifetime alive at that point in the text. Each branch of an `if … else` starts from the lifetimes alive at its guard: a `destroy` or `create` in one branch does not happen in the other. After the `end`, a lifetime alive at the end of either branch is alive.
 18. **Creation order.** The creator's creation location precedes the created lifetime's first location.
 19. **Timeouts** are locations on their instance with no timing semantics (p. 63).
+
+### Skeleton automaton
+
+20. **A synchronous message is one step.** The automaton merges a synchronous message's send and receipt into one step, observed as one event. Every location after the send on the sender's line follows the receipt (reading 4), so nothing depends on the send without also depending on the receipt. Every run of the chart therefore has a counterpart in which the merged step happens where the receipt did.
+21. **One copy at a time.** A chart is followed by a single copy. An activation message that arrives while the chart is active starts nothing new; if it is one of the chart's visible events and not enabled, it is a deviation like any other. After the chart completes, exits or fails, it waits for its activation again; a universal chart with neither an activation message nor a pre-chart starts again at once. The paper's runs allow overlapping activations (p. 51); a single copy keeps the state space finite, which model checking needs.
+22. **Deterministic steps.** When an event is enabled at several points of a cut, for example two messages of the same name in a coregion, the step takes the first in text order. When a cut enables several conditions, they are evaluated one at a time, in text order.
+23. **Promises of a chart without activation start with its first event.** A chart with neither an activation message nor a pre-chart is followed from every point of a run (reading 21), so its start holds no promise; the promises of reading 1 begin with the chart's first event. Otherwise every run would have to carry out the chart again and again without end.
 
 ## Text notation specification
 
@@ -845,7 +853,7 @@ interface Alternative { kind: 'alt'; id: string; guard: string;      // Conditio
   - every pre-chart location precedes every body location (reading 9);
   - the creator's creation location precedes the created lifetime's first location (reading 18).
 - **Well-formedness.** ≤m is acyclic in every unfolding, and the text order is a linearisation of it (p. 70). The paper's rule for shared conditions relates their locations in both directions, so acyclicity is checked after merging the locations of each shared condition, and of each barrier, into one point.
-- **Cuts.** One location per instance, consistent with ≤m (p. 71). Needed later for monitoring and animated play-through.
+- **Cuts.** One location per instance, consistent with ≤m (p. 71). The states of the skeleton automaton are cuts, and animated play-through will use them too.
 
 For a chart without subcharts, alternatives, creation, coregions or a pre-chart, there is exactly one unfolding, and ≤m is the paper's formal partial order.
 
@@ -859,9 +867,9 @@ For a chart without subcharts, alternatives, creation, coregions or a pre-chart,
 | `partialOrder(model, unfolding?)` | the relation, including barriers, plus a topological layering | 1 |
 | `toJSON(model)` / `fromJSON(json)` | a stable, versioned JSON form | 1 |
 | Mermaid diagram definition `lsc-alpha` | parser, db, renderer, styles | 1 |
-| `skeletonAutomaton(model)` | the transition system of Appendix A.2 with the readings applied, for monitors | later |
+| `skeletonAutomaton(model, { limit? })` | `{ automaton?, diagnostics }`: the transition system of Appendix A.2 for a basic chart, with the readings applied, as plain data (§Skeleton automaton and pavlov) | 1 |
 
-The model package has no rendering or DOM dependencies, so it also runs in Node, in tests and in a future monitor.
+The model package has no rendering or DOM dependencies, so it also runs in Node, in tests and in monitors.
 
 ## Static validation rules
 
@@ -917,23 +925,26 @@ flowchart LR
     builder --> validator
     builder --> po["unfoldings + partial order"]
     builder --> json["JSON"]
+    po --> automaton["skeleton automaton"]
   end
   subgraph plugin["mermaid-lsc"]
     db --> layout --> renderer
   end
   builder --> db
   renderer --> svg["SVG via Mermaid"]
-  json --> future["future: monitor, play-through"]
+  automaton --> pavlov["lsc-pavlov (Clojure): monitor b-thread"]
+  json --> future["future: play-through"]
 ```
 
-The model is the centre. The plugin's db holds a fresh model for each render, and future tools read the same model without Mermaid.
+The model is the centre. The plugin's db holds a fresh model for each render, and other tools read the same model without Mermaid.
 
 ### Packages
 
 | Package | Contents | Depends on | Licence |
 | --- | --- | --- | --- |
 | `lsc-model` | Langium grammar and parser, expression parser, model, validator, unfoldings, partial order, JSON | Langium | MIT |
-| `mermaid-lsc` | Detector, loader, db, layout, renderer, styles; a command-line renderer that writes SVG | `lsc-model`; jsdom, for the command-line renderer; Mermaid as a peer | MIT |
+| `mermaid-lsc` | Detector, loader, db, layout, renderer, styles; a command-line renderer that writes SVG, or the skeleton automaton as JSON | `lsc-model`; jsdom, for the command-line renderer; Mermaid as a peer | MIT |
+| `lsc-pavlov` | Clojure(Script) interpreter that runs a skeleton automaton as a pavlov b-thread | pavlov; `org.clojure/data.json` on the JVM | EPL-1.0, as pavlov and Clojure |
 
 ### Using the plugin in a page
 
@@ -995,6 +1006,158 @@ At port time:
 
 `lsc-model` continues to be published from this repository for users outside Mermaid. How the two copies are kept in sync, and who publishes which, is agreed in the RFC before the port starts.
 
+## Skeleton automaton and pavlov
+
+The skeleton automaton turns a basic chart into a finite state machine over the chart's events. `lsc-pavlov` runs that machine as a [pavlov](https://github.com/thomascothran/pavlov) b-thread. The chart then watches a behavioural program as it runs, and pavlov's model checker reports every run that breaks the chart.
+
+The automaton holds the semantics; the Clojure side only interprets it. Both follow §Semantic readings, including readings 20–23.
+
+### Supported charts
+
+`skeletonAutomaton` covers basic charts: universal and existential charts, with an activation message, a pre-chart, both or neither; synchronous and asynchronous messages, including messages to and from `env`; hot and cold messages, locations and conditions; shared conditions; coregions; visible events; and `progress`. Notes and accessibility statements are ignored.
+
+For anything else it returns no automaton, with one error per construct:
+
+| # | Not supported | Why |
+| --- | --- | --- |
+| A1 | `subchart`, `if … else`, `repeat`, and charts with the `subchart` header | Their semantics are informal (p. 77) and need barriers and iteration in the automaton |
+| A2 | `simultaneous` | pavlov selects one event per step, so simultaneous events can't be one step |
+| A3 | `create`, `destroy`, `timeout` | Lifetimes and timeouts carry no event to observe |
+| A4 | `activation when`; a chart whose first step is a condition with no activation message or pre-chart before it; a chart with no events and no activation message | The first two need a condition watched after every event; the third would complete again after every event |
+| A5 | More states than the limit (default 4,096) | Coregions multiply cuts |
+| A6 | Any error from `validateLsc`, such as a cyclic order (V1) | The automaton needs a well-formed order |
+
+### Events
+
+An event is identified by its sender, its receiver, the message name and, for an asynchronous message, its direction: `!` for the send, `?` for the receipt. A synchronous message is one event (reading 20). Two messages with the same identity, such as `departReq` and `departReq#2`, are the same event at two places in the chart.
+
+The chart's *visible events* are the events of its messages and its declared `visible` events, vis_events(m). The activation message's event is in the automaton's alphabet too. It is visible only if the chart also draws it or declares it visible.
+
+### States
+
+Every state is one of three kinds:
+
+- **Wait.** The chart waits for an event. The state records:
+  - its phase: `inactive` before the activation message, then `prechart` or `body`;
+  - whether it is hot;
+  - each enabled event and the state it leads to;
+  - what a *deviation* means here, that is, a visible event that is not enabled: `ignore`, `not-activated` or `abort`.
+- **Condition.** A condition is enabled and is evaluated before anything else happens (reading 2). The state has a successor for true and one for false. A condition with no variables, paths, propositions or quoted text, such as `false`, also carries its value.
+- **Outcome.** `completed`, `exit` (a cold condition was false), `abort` (a hot condition was false, or a deviation in the body) or `not-activated` (the pre-chart failed, reading 8).
+
+A body state is hot when the chart holds a promise there (A.2): some instance's current location is hot, counting location 0 (reading 1), or a hot asynchronous message has been sent and not yet received. In a coregion, the promise of a hot location is kept once the instance reaches any later location. Pre-chart and inactive states are never hot, and neither is the start state of a chart with no activation message and no pre-chart (reading 23).
+
+The automaton is built as follows:
+
+1. The start state waits for the activation message, if there is one. Otherwise it is the first cut of the pre-chart, or of the body when there is no pre-chart.
+2. From each cut, every enabled event moves the cut past one point of the partial order (reading 22).
+3. A cut that enables a condition leads to a condition state. If the condition is true, the cut moves past it. If it is false, the next state is `not-activated` in the pre-chart, `abort` for a hot condition and `exit` for a cold one.
+4. A deviation is ignored while inactive, and at the pre-chart's first cut when there is no activation message, because matching has not begun. Elsewhere in the pre-chart it means `not-activated`. In the body it means `abort`.
+5. Completing the pre-chart leads to the body's first cut (reading 9). Completing the body leads to `completed`.
+
+### JSON form
+
+```ts
+interface SkeletonAutomaton {
+  automatonVersion: 1;
+  mode: 'universal' | 'existential';
+  title?: string;
+  /** The alphabet. `visible` is false only for an activation event the chart doesn't otherwise contain. */
+  events: { from: string; to: string; name: string; kind: 'synch' | 'asynch'; dir?: '!' | '?'; visible: boolean }[];
+  /** Index into `events`. */
+  activation?: number;
+  conditions: { id: string; text: string; temp: Temp; part: Part; value?: boolean }[];
+  start: number;
+  states: AutomatonState[];
+}
+
+type AutomatonState =
+  | { id: number; kind: 'wait'; phase: 'inactive' | 'prechart' | 'body'; hot: boolean;
+      /** [event index, next state id] */
+      on: [number, number][]; deviation: 'ignore' | 'not-activated' | 'abort'; cut: LocRef[] }
+  | { id: number; kind: 'condition'; phase: 'prechart' | 'body'; hot: boolean;
+      /** Index into `conditions`. */
+      condition: number; ifTrue: number; ifFalse: number; cut: LocRef[] }
+  | { id: number; kind: 'outcome'; outcome: 'completed' | 'exit' | 'abort' | 'not-activated' };
+```
+
+`cut` lists the location each lifetime has reached, for display and debugging. The command-line renderer writes this form with `mermaid-lsc --automaton chart.lsc -o chart.json`.
+
+### Running a chart in pavlov
+
+`lsc-pavlov` is a Clojure(Script) library in this repository. Its namespace is `lsc.pavlov`:
+
+```clojure
+(require '[lsc.pavlov :as lp])
+
+(def departure (lp/read-automaton (slurp "car-departure.json")))
+
+(lp/bthread departure {:name "car-departure"})
+```
+
+- `read-automaton` parses the JSON form.
+- `bthread` returns a new b-thread that follows the chart. B-threads are stateful, so call it once for each program or model check.
+
+It takes these options:
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `:name` | the title, lower-cased with spaces replaced by `-`, or `lsc` | The namespace of the b-thread's own events |
+| `:event-type` | see below | A function from `{:from :to :name :kind :dir}` to the pavlov event type of a chart event |
+| `:conditions` | none | A map from a condition's id (`c1`, `c2`, …) or text to a predicate; an id takes precedence over a text |
+| `:mode` | `:monitor` | `:enforce` also blocks events that would break a universal chart |
+
+pavlov matches waits and blocks on event types, so the program's events must have the types the chart expects. By default a synchronous message `car ->> carHandler: departReq` has type `:car->carHandler/departReq`. An asynchronous one has `:car->carHandler/departReq!` for its send and `:car->carHandler/departReq?` for its receipt. A message from the environment has the sender `env`.
+
+The b-thread treats the automaton's states as follows:
+
+| State | Universal chart | Existential chart |
+| --- | --- | --- |
+| Wait | Waits on the visible events and the activation event; the bid is `:hot` when the state is hot | Waits on the same events; never hot |
+| Wait, with `:mode :enforce` | In the body, also blocks the visible events that are not enabled | `:enforce` is rejected |
+| Condition with a value or a predicate | Evaluated at once | Evaluated at once |
+| Condition without either | Requests two events, the condition true and false, and blocks the visible events until one is selected; the model checker explores both outcomes | Same |
+| `abort` | Requests a violation event, then starts again | Starts again |
+| `not-activated` | Starts again; the event that caused the deviation is offered to the start state | Same |
+| `exit` | Starts again | Starts again |
+| `completed` | Starts again | Requests a completed event, then starts again |
+
+A predicate is called with a map:
+- `:condition`: `{:id :text :temp}`;
+- `:event`: the event that enabled the condition, or `nil` at the start;
+- `:events`: the chart events since the chart last started, oldest first.
+
+The b-thread's own events use the chart's name as their namespace:
+
+| Event | When |
+| --- | --- |
+| `{:type :car-departure/violated, :invariant-violated true, :reason :out-of-order \| :hot-condition, :event e, :condition id}` | A universal chart aborts. `:event` or `:condition` says what broke it |
+| `{:type :car-departure/completed}` | An existential chart completes |
+| `{:type :car-departure/condition, :condition id, :value true \| false}` | A condition without a predicate is evaluated |
+
+### Model checking
+
+Universal charts go in `:safety-bthreads`, so their violation events are reported as safety violations. Existential charts go with the program's b-threads, and `:possible` asks for their completed events:
+
+```clojure
+(check/check
+  {:bthreads (assoc program :car-stopping (lp/bthread stopping {:name "car-stopping"}))
+   :safety-bthreads {:car-departure (lp/bthread departure {:name "car-departure"})}
+   :possible #{:car-stopping/completed}})
+```
+
+The checker's findings then read as follows:
+
+| Finding | Meaning for the chart |
+| --- | --- |
+| Safety violation `:car-departure/violated` | A run breaks the universal chart: a chart event out of order, or a false hot condition |
+| Liveness violation | A run stops, terminates or loops forever at a hot cut: a promise of the chart is never kept (A.3) |
+| `:impossible #{:car-stopping/completed}` | No run carries out the existential chart |
+
+An existential chart counts as satisfied only when it completes. The paper also accepts a run that leaves the chart at a false cold condition or stays at a cold cut (A.3). Requiring completion makes the witness show the whole scenario.
+
+The package's tests run every fixture that the automaton supports through pavlov's model checker. The fixtures' automata are committed as JSON next to the Clojure tests, and an `lsc-model` test fails when they are out of date.
+
 ## Design decisions
 
 | # | Decision | Alternative considered | Why |
@@ -1011,6 +1174,9 @@ At port time:
 | D10 | Occurrence labels (`#label`) on `send` and `receive`; `from` is required on `receive` | Ordinal pairing, or generated occurrence ids | Labels survive edits and make same-name overtaking expressible; `from` makes pairing readable at a glance. |
 | D11 | `progress` settings are scoped to their block | Settings persist in text order | Temperatures never depend on which branch ran, and a reader can reason about a block on its own. |
 | D12 | Simultaneous regions list the instances whose events coincide; other partners' events stay separate | Every partner's events forced into one location | Expresses both "sent together, received apart" and "received together" without over-constraining partners. |
+| D13 | `lsc-model` builds the skeleton automaton and exports it as JSON; `lsc-pavlov` only interprets it | Generate `b/scenario` source code; reimplement the semantics in Clojure | The readings live in one implementation, so the two languages can't drift. A scenario vector is a straight line and can't express a partial order without listing every linearisation. Other runtimes can reuse the automaton. |
+| D14 | Universal charts report violations as events and use `:hot` bids; blocking is opt-in (`:mode :enforce`) | Block out-of-order events by default, as play-out does | A monitor should not change the program it checks. Blocking is a different use: making the program obey the chart. |
+| D15 | A condition without a predicate becomes a choice that the model checker explores | Treat it as true; reject the chart | An abstract chart is then checked against both outcomes. This matches the paper, whose local computations may give variables any value (p. 72). |
 
 ## Roadmap and upstreaming plan
 
@@ -1022,7 +1188,9 @@ There are five phases, each closed by a gate. The plugin from Phase 2 is useful 
 | 1. Model library | `lsc-model`: parser, expression parser, model, validator, unfoldings, partial order, JSON | Every fixture parses, validates and round-trips through JSON; every V-rule has a positive and negative test |
 | 2. Mermaid plugin | `mermaid-lsc`: layout, renderer, theming, accessibility, command-line SVG renderer, docs site | Published plugin renders every fixture; visual regression baselines approved |
 | 3. Upstream port | RFC issue, then port into Mermaid per the checklist below | RFC accepted by maintainers, including the keyword used in core; PR merged |
-| 4. Beyond release 1 | `skeletonAutomaton`, runtime monitor, animated play-through, general activation conditions, chart references, later LSC extensions | (open) |
+| 4. Beyond release 1 | Skeleton automaton for the constructs A1–A4 exclude, animated play-through, general activation conditions, chart references, later LSC extensions | (open) |
+
+The skeleton automaton and `lsc-pavlov` depend only on Phase 1, so they proceed alongside Phases 2 and 3.
 
 Phase 0 comes first because the notation is the hardest thing to change once people have written charts in it. No dates are set yet; they depend on who staffs the work.
 
@@ -1052,6 +1220,7 @@ The port follows Mermaid's reviewer checklist. These items need work beyond movi
 | Mermaid's diagram conventions keep moving (Langium migration, rendering utilities) | Rework at port time | Track the `develop` branch; keep Mermaid-specific code behind the adapter module |
 | Ownership of `lsc-model` after the port | Two copies drift, or maintainers refuse a second package | Agree on sync and publishing in the RFC; one source of truth with a release-time copy |
 | Bundle size inside Mermaid core | Maintainers reject the validator or partial-order code | Diagram chunks load lazily; keep the validator tree-shakable and optional in the Mermaid build |
+| pavlov's bid and model-checker API changes | `lsc-pavlov` breaks | Pin pavlov to a commit; the Clojure tests model-check every supported fixture |
 | Unfoldings grow exponentially with the number of `if … else` and cold conditions | Slow validation on large charts | Cap with a warning (default 256); most charts have few alternatives |
 | Dashed versus solid is the main temperature cue, and dotted coregions sit next to dashed lines | Hard to read at small sizes, in hand-drawn mode, and for some readers | Coregion end ticks; optional secondary cue (theme colour or H/C badge); test hand-drawn mode early |
 | Layout of nested subcharts, coregions, slanted messages and shared conditions | Overlaps and crossings | Text-order layout, fixed rules, visual regression fixtures from every paper figure |
