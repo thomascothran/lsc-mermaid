@@ -32,10 +32,19 @@ text, so the person and the agent can both edit the same chart.
    rule: "Whenever the car receives `setDest`, it must send `departReq` …; after `arrivReq`,
    the acknowledgement may never come." The person confirms the reading, not the syntax, so
    the reading is where misunderstandings show up.
-5. **Let them see it drawn.** Point to a rendering: an SVG from
-   `npx -y mermaid-lsc@latest chart.lsc -o chart.svg`, or a playground link (reference.md
-   section 10). For someone new to LSCs, link the tutorial lesson for the construct that
-   matters.
+5. **Let them see it drawn.** Give a link that opens the chart in the playground, drawn and
+   editable:
+
+   ```sh
+   node scripts/link.mjs chart.lsc      # this skill's script: needs only Node, no packages
+   ```
+
+   Run it from this skill's folder, or give its full path. If the script isn't at hand, use
+   `npx -y mermaid-lsc@latest --link chart.lsc`. Without any way to run code, write the link by
+   hand as reference.md section 10 shows. Show the chart text as well as the link. An SVG from
+   `npx -y mermaid-lsc@latest chart.lsc -o chart.svg` suits files and pull requests. For
+   someone new to LSCs, also link the tutorial lesson for the construct that matters.
+
 6. **When the person edits a chart,** re-check it, then describe how its meaning changed rather
    than how its text changed.
 

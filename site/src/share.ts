@@ -83,7 +83,12 @@ export async function encodeHash(state: PageState): Promise<string> {
   return params.toString();
 }
 
-/** Decodes a hash written by `encodeHash`, with or without its `#`. */
+/**
+ * Decodes a hash written by `encodeHash`, with or without its `#`. It also reads `lsc`, the
+ * chart text percent-encoded as in a query string, which a language model can write without
+ * running code: `#lsc=lsc-alpha%20existential%0A%20%20a%20-%3E%3E%20b%3A%20ping`. As in a
+ * query string, `+` reads as a space, so a plus sign is written `%2B`.
+ */
 export async function decodeHash(hash: string): Promise<Partial<PageState>> {
   const params = new URLSearchParams(hash.replace(/^#/, ''));
   const state: Partial<PageState> = readSettings({
@@ -94,7 +99,10 @@ export async function decodeHash(hash: string): Promise<Partial<PageState>> {
   try {
     const z = params.get('z');
     const t = params.get('t');
-    if (z !== null && canCompress()) {
+    const plain = params.get('lsc');
+    if (plain !== null) {
+      state.text = plain;
+    } else if (z !== null && canCompress()) {
       const bytes = await pipe(fromBase64Url(z), new DecompressionStream('deflate-raw'));
       state.text = new TextDecoder().decode(bytes);
     } else if (t !== null) {

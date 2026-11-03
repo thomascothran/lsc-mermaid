@@ -84,3 +84,5 @@ export async function renderSvg(text: string, options: RenderOptions = {}): Prom
   const { svg } = await mermaid.render(options.id ?? 'lsc', text);
   return { svg, diagnostics };
 }
+
+export { PLAYGROUND_URL, playgroundLink, type LinkOptions } from './link.js';

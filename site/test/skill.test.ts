@@ -2,11 +2,13 @@
 // publishes as llms.txt. Its charts must show only the problems they mean to show, and it must
 // keep up with the validator's codes, the notation's words and the tutorial's lessons.
 
+import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseLsc, validateLsc, type Diagnostic } from 'lsc-model';
-import { renderSvg } from 'mermaid-lsc/node';
+import { playgroundLink, renderSvg } from 'mermaid-lsc/node';
+import { decodeHash } from '../src/share.ts';
 import { describe, expect, it } from 'vitest';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -139,6 +141,46 @@ describe('the reference', () => {
       'env',
     ])
       expect(examples, word).toContain(word);
+  });
+});
+
+describe('links to the playground', () => {
+  const chart =
+    'lsc-alpha universal\n  title Café & “quotes” #1\n  activation on a ->> b: go(x + 1)\n  b -) a: done\n';
+  const script = join(skillDir, 'scripts', 'link.mjs');
+  const run = (args: string[], input?: string) =>
+    execFileSync(process.execPath, [script, ...args], { input, encoding: 'utf8' }).trim();
+
+  it('the skill script writes the links mermaid-lsc --link writes', () => {
+    const options = { theme: 'forest', cue: 'line+color' };
+    expect(run(['--theme', 'forest', '--cue', 'line+color'], chart)).toBe(
+      playgroundLink(chart, options),
+    );
+    expect(run(['--base', 'file:///x/index.html'], chart)).toBe(
+      playgroundLink(chart, { base: 'file:///x/index.html' }),
+    );
+  });
+
+  it('the playground opens them with the chart and settings', async () => {
+    const link = run(['--theme', 'dark', '--cue', 'line+badge'], chart);
+    expect(link.startsWith('https://thomascothran.github.io/lsc-mermaid/#')).toBe(true);
+    expect(await decodeHash(link.slice(link.indexOf('#')))).toEqual({
+      theme: 'dark',
+      cue: 'line+badge',
+      text: chart,
+    });
+  });
+
+  it('the hand-written lsc= links in the skill open valid charts', async () => {
+    const links = [
+      ...`${skill}\n${reference}`.matchAll(/https:\/\/\S+?#[^\s`<>)]*\blsc=[^\s`<>)]+/g),
+    ];
+    expect(links.length).toBeGreaterThan(0);
+    for (const [link] of links) {
+      const { text } = await decodeHash(link.slice(link.indexOf('#')));
+      expect(text, link).toBeDefined();
+      expect(diagnose(text!), `${link}\n${text}`).toEqual([]);
+    }
   });
 });
 

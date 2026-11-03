@@ -42,6 +42,18 @@ describe('links', () => {
     expect(hash.length).toBeLessThan(text.length / 4);
   });
 
+  it('reads plain percent-encoded text from lsc, as a language model writes it', async () => {
+    const text = 'lsc-alpha existential\n  a ->> b: ping(x + 1) & #1';
+    const written = `#theme=dark&lsc=${encodeURIComponent(text)}`;
+    expect(await decodeHash(written)).toEqual({ theme: 'dark', text });
+    // Spaces written as +, and characters left unencoded where a link allows them.
+    expect((await decodeHash('#lsc=lsc-alpha+existential%0A++a+->>+b:+ping')).text).toBe(
+      'lsc-alpha existential\n  a ->> b: ping',
+    );
+    // A stray % doesn't lose the rest of the text.
+    expect((await decodeHash('#lsc=a%20100%25%20b%zz')).text).toBe('a 100% b%zz');
+  });
+
   it('ignores unknown settings and damaged text', async () => {
     expect(await decodeHash('#theme=neon&cue=line%2Bcolor&z=not-deflate')).toEqual({
       cue: 'line+color',

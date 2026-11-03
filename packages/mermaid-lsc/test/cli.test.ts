@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { inflateRawSync } from 'node:zlib';
 import { runCli, type CliIo } from '../src/cli.js';
 
 function io(files: Record<string, string> = {}, stdin = '') {
@@ -116,6 +117,32 @@ describe('mermaid-lsc command line', () => {
     expect(t.out.join('')).toBe(
       'doc.md: 2 charts, 1 error, 0 warnings\nempty.md: no charts found (expected ```lsc blocks)\n',
     );
+  });
+
+  it('prints a playground link with --link', async () => {
+    const t = io({ 'ping.lsc': CHART });
+    expect(
+      await runCli(['--link', '-q', '-t', 'dark', '--cue', 'line+badge', 'ping.lsc'], t.io),
+    ).toBe(0);
+    const link = t.out.join('').trim();
+    expect(link).toMatch(
+      /^https:\/\/thomascothran\.github\.io\/lsc-mermaid\/#theme=dark&cue=line%2Bbadge&z=/,
+    );
+    const z = new URLSearchParams(link.split('#')[1]).get('z')!;
+    expect(inflateRawSync(Buffer.from(z, 'base64url')).toString('utf8')).toBe(CHART);
+    expect(t.err).toEqual([]);
+  });
+
+  it('links each chart of a Markdown file, with its line, and fails on errors', async () => {
+    const md =
+      '# Two\n```lsc\nlsc-alpha existential\n  a ->> b: x\n```\n```lsc\nlsc-alpha existential\n  a -->> b: y\n```\n';
+    const t = io({ 'doc.md': md });
+    expect(await runCli(['--link', '--base', 'file:///s/index.html#old', 'doc.md'], t.io)).toBe(1);
+    const lines = t.out.join('').trim().split('\n');
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toMatch(/^doc\.md:3: file:\/\/\/s\/index\.html#z=/);
+    expect(lines[1]).toMatch(/^doc\.md:7: file:\/\/\/s\/index\.html#z=/);
+    expect(t.err.join('')).toMatch(/^doc\.md:8:5: error V23: /);
   });
 
   it('refuses other diagram types', async () => {

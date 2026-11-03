@@ -1,6 +1,6 @@
 {
   "name": "mermaid-lsc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Live Sequence Charts as a Mermaid external diagram, with a command-line renderer and checker",
   "keywords": [
     "mermaid",

@@ -19,6 +19,7 @@ from the [tutorial](https://thomascothran.github.io/lsc-mermaid/tutorial/).
 ````sh
 npx mermaid-lsc chart.lsc -o chart.svg          # draw a chart as SVG
 npx mermaid-lsc --check chart.lsc notes.md      # check .lsc files and the ```lsc blocks of Markdown
+npx mermaid-lsc --link chart.lsc                # a link that opens the chart in the playground
 npx mermaid-lsc --automaton chart.lsc           # the chart's skeleton automaton as JSON
 ````
 

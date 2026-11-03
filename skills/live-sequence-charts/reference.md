@@ -395,10 +395,32 @@ lsc-alpha universal
   and fix warnings unless the chart is meant to show them. It needs Node 20 or later. Where the
   package is installed, `mermaid-lsc --check …` is enough.
 - **Draw** a chart to SVG: `npx -y mermaid-lsc@latest chart.lsc -o chart.svg`.
-- **Open** it in the browser playground, where the reader can edit it:
-  `https://thomascothran.github.io/lsc-mermaid/#t=` followed by the chart text as UTF-8,
-  base64url-encoded. Without a way to encode it, give the chart text and the link
-  <https://thomascothran.github.io/lsc-mermaid/> to paste it into.
+- **Link** to the chart in the browser playground, where the reader sees it drawn and can edit
+  it. The chart travels inside the link, so nothing is uploaded. Pick the first way that works:
+  1. With the skill installed, run its script, which needs only Node:
+     `node scripts/link.mjs chart.lsc` (from the skill's folder), or pipe the chart to it.
+  2. Otherwise, with a shell, run `npx -y mermaid-lsc@latest --link chart.lsc`. For a Markdown
+     file it prints one link per chart, after `file:line:`.
+  3. Without running code, write the link by hand: `https://thomascothran.github.io/lsc-mermaid/#lsc=`
+     followed by the chart text percent-encoded as `encodeURIComponent` would encode it. Above
+     all, write each space as `%20`, each line break as `%0A`, and `%`, `&`, `+` and `#` as
+     `%25`, `%26`, `%2B` and `%23`. This chart:
+
+     ```
+     lsc-alpha existential
+       a ->> b: ping
+     ```
+
+     has the link
+     `https://thomascothran.github.io/lsc-mermaid/#lsc=lsc-alpha%20existential%0A%20%20a%20-%3E%3E%20b%3A%20ping`.
+     Hand-written links of long charts are easy to get wrong, so keep them for short charts.
+
+  Add `--theme dark` (or `forest`, `neutral`, `base`) and `--cue line+badge` (or `line+color`)
+  to 1 and 2 for those settings; by hand, add `theme=dark&` or `cue=line%2Bbadge&` before
+  `lsc=`. Always show the chart text too, as links can be cut off, and a link written by hand
+  may be wrong. To open a local copy of the playground instead, add
+  `--base file:///path/to/site/dist/index.html`.
+
 - **In Markdown,** write charts in ` ```lsc ` blocks. On pages that load the Mermaid plugin, use
   ` ```mermaid ` blocks instead.
 - **Explain** a chart to someone new to LSCs by pointing them to the tutorial lesson for the

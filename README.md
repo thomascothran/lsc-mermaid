@@ -33,7 +33,9 @@ it to <https://thomascothran.github.io/lsc-mermaid/> (`.github/workflows/pages.y
 - **Example** loads any of the worked examples. **Gallery** draws them all.
 - **Theme**, **Temperature cue** and **Show diagnostics** set the plugin's options.
 - **Copy link** gives a link that reopens the chart and settings. The address bar keeps that
-  link up to date, and the browser keeps your last chart.
+  link up to date, and the browser keeps your last chart. A link can also carry the chart as
+  plain percent-encoded text, `#lsc=lsc-alpha%20existential%0A…`, which a language model can
+  write without running code.
 - **Copy SVG** and **Download SVG** export the diagram.
 - **Syntax cheat-sheet**, under the editor, summarises the notation.
 - **Tutorial** opens a step-by-step tutorial for readers with no background: twenty short
@@ -137,20 +139,34 @@ diagnostics as above. It exits with status 1 if any chart has an error, blocking
 mermaid-lsc --check chart.lsc docs/rules.md
 ```
 
+Add `--link` to print a link that opens the chart in the playground, in the form **Copy link**
+writes. It takes the same files as `--check`; for a Markdown file it prints one link per chart,
+after `file:line:`. `-t` and `--cue` set the theme and the temperature cue, and `--base` points
+the link at another copy of the playground, such as a local `site/dist/index.html`. Problems go to
+standard error, and errors make the exit status 1, but the links are still printed.
+
+```sh
+mermaid-lsc --link chart.lsc
+mermaid-lsc --link --base file://$PWD/site/dist/index.html chart.lsc
+```
+
 ## For language models
 
 [`skills/live-sequence-charts`](skills/live-sequence-charts) is an
 [Agent Skill](https://agentskills.io) that lets Claude Code, pi, Codex, claude.ai and other
 agents read, write, check and show charts. `SKILL.md` gives the workflow: write the chart, check
-it with `mermaid-lsc --check`, state its reading in plain words and point to a drawing.
+it with `mermaid-lsc --check`, state its reading in plain words and give a link that opens it in
+the playground. `scripts/link.mjs` writes that link with Node alone, without installing anything;
+without code, the reference shows how to write a `#lsc=` link by hand.
 `reference.md` is the whole notation in about 3,700 words: which construct fits which
 requirement, the statements, their meaning, the habits from Mermaid sequence diagrams that don't
 carry over, and every diagnostic code with its usual fix. The site publishes it as `llms.txt`.
 
 Install the skill by copying the folder into the agent's skills folder (for example
 `~/.claude/skills/`), or by uploading it as a zip in claude.ai. The site's tests check every chart
-in the skill, and fail when the reference misses a diagnostic code, a word of the notation or a
-tutorial lesson it links to.
+in the skill and its hand-written links, check that `scripts/link.mjs` writes the same links as
+`mermaid-lsc --link` and that the playground opens them, and fail when the reference misses a
+diagnostic code, a word of the notation or a tutorial lesson it links to.
 
 ## Using `lsc-model`
 

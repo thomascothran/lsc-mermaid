@@ -4,6 +4,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { parseLsc, skeletonAutomaton, validateLsc, type Diagnostic } from 'lsc-model';
+import { playgroundLink } from './link.js';
 import { LscRenderError, renderSvg } from './node.js';
 
 const USAGE = `Usage: mermaid-lsc [options] [input]
@@ -15,6 +16,10 @@ Options:
       --check           check the charts in one or more files without drawing them: .lsc
                         files, or the \`\`\`lsc blocks of Markdown (.md) files. Exits with 1
                         if any chart has an error
+      --link            print a link that opens the chart in the playground, drawn and
+                        editable. Takes .lsc and Markdown files like --check, and -t and --cue
+      --cue <cue>       with --link: temperature cue, line, line+color or line+badge
+      --base <url>      with --link: the playground's address (default: the published one)
       --automaton       write the chart's skeleton automaton as JSON instead of SVG
   -o, --output <file>   write the SVG to <file>
   -t, --theme <name>    Mermaid theme: default, dark, forest, neutral or base
@@ -60,6 +65,9 @@ export async function runCli(argv: string[], io: CliIo = nodeIo): Promise<number
       options: {
         output: { type: 'string', short: 'o' },
         check: { type: 'boolean' },
+        link: { type: 'boolean' },
+        cue: { type: 'string' },
+        base: { type: 'string' },
         automaton: { type: 'boolean' },
         theme: { type: 'string', short: 't' },
         config: { type: 'string', short: 'c' },
@@ -79,6 +87,7 @@ export async function runCli(argv: string[], io: CliIo = nodeIo): Promise<number
     return 0;
   }
   if (values.check) return runCheck(positionals, values, io);
+  if (values.link) return runLink(positionals, values, io);
   if (positionals.length > 1) {
     io.stderr(`mermaid-lsc: expected at most one input file\n\n${USAGE}`);
     return 2;
@@ -229,6 +238,50 @@ async function runCheck(
       errors || warnings ? `${plural(errors, 'error')}, ${plural(warnings, 'warning')}` : 'ok';
     io.stdout(`${file}: ${markdown ? `${plural(charts.length, 'chart')}, ` : ''}${counts}\n`);
     if (errors) failed = true;
+  }
+  return failed ? 1 : 0;
+}
+
+/**
+ * `--link`: prints a playground link for each chart. A single `.lsc` file or standard input gets
+ * the bare link; otherwise each link follows `file:line: `. Problems go to standard error, and
+ * any error makes the exit code 1, though the link is still printed.
+ */
+async function runLink(
+  inputs: string[],
+  options: { quiet?: boolean; verbose?: boolean; theme?: string; cue?: string; base?: string },
+  io: CliIo,
+): Promise<number> {
+  const files = inputs.length ? inputs : ['-'];
+  const isMarkdown = (input: string) => /\.(md|markdown)$/i.test(input);
+  const bare = files.length === 1 && !isMarkdown(files[0]!);
+  let failed = false;
+  for (const input of files) {
+    const file = input === '-' ? '<stdin>' : input;
+    let text: string;
+    try {
+      text = input === '-' ? await io.readStdin() : await io.readText(input);
+    } catch (error) {
+      io.stderr(`mermaid-lsc: can't read ${file}: ${(error as Error).message}\n`);
+      return 2;
+    }
+    const charts = isMarkdown(input) ? markdownCharts(text) : [{ text, line: 1 }];
+    if (charts.length === 0) {
+      io.stderr(`${file}: no charts found (expected \`\`\`lsc blocks)\n`);
+      failed = true;
+    }
+    for (const chart of charts) {
+      for (const d of checkChart(chart.text, chart.line)) {
+        if (d.severity === 'error') failed = true;
+        if (
+          d.severity === 'error' ||
+          (!options.quiet && (d.severity !== 'info' || options.verbose))
+        )
+          io.stderr(formatDiagnostic(file, d));
+      }
+      const link = playgroundLink(chart.text, options);
+      io.stdout(bare ? `${link}\n` : `${file}:${chart.line}: ${link}\n`);
+    }
   }
   return failed ? 1 : 0;
 }
