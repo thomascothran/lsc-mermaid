@@ -45,8 +45,9 @@ answer, and `:::aside Title` … `:::` is a side note. The site's tests parse, v
 every chart, including the answers, and fail on any problem the chart doesn't expect.
 
 The folder holds `index.html`, `styles.css`, `app.js` (the plugin, the page code and the
-examples), Mermaid's own `mermaid.min.js`, the licence notices, and `tutorial/`: a page per
-lesson and `tutorial.js`, which draws their charts.
+examples), Mermaid's own `mermaid.min.js`, the licence notices, `llms.txt` (the notation
+reference for language models, see below), and `tutorial/`: a page per lesson and
+`tutorial.js`, which draws their charts.
 
 ## Using the plugin in a page
 
@@ -123,6 +124,30 @@ Add `--automaton` to write the chart's skeleton automaton as JSON instead, for `
 ```sh
 mermaid-lsc --automaton chart.lsc -o chart.json
 ```
+
+Add `--check` to check charts without drawing them. It takes any number of `.lsc` files, and
+Markdown files, whose ` ```lsc ` blocks it checks (and ` ```mermaid ` blocks that hold a chart),
+with line numbers in the Markdown file. It prints `file: ok` or a count for each file, and the
+diagnostics as above. It exits with status 1 if any chart has an error, blocking or not.
+
+```sh
+mermaid-lsc --check chart.lsc docs/rules.md
+```
+
+## For language models
+
+[`skills/live-sequence-charts`](skills/live-sequence-charts) is an
+[Agent Skill](https://agentskills.io) that lets Claude Code, pi, Codex, claude.ai and other
+agents read, write, check and show charts. `SKILL.md` gives the workflow: write the chart, check
+it with `mermaid-lsc --check`, state its reading in plain words and point to a drawing.
+`reference.md` is the whole notation in about 3,700 words: which construct fits which
+requirement, the statements, their meaning, the habits from Mermaid sequence diagrams that don't
+carry over, and every diagnostic code with its usual fix. The site publishes it as `llms.txt`.
+
+Install the skill by copying the folder into the agent's skills folder (for example
+`~/.claude/skills/`), or by uploading it as a zip in claude.ai. The site's tests check every chart
+in the skill, and fail when the reference misses a diagnostic code, a word of the notation or a
+tutorial lesson it links to.
 
 ## Using `lsc-model`
 

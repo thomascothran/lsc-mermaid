@@ -118,6 +118,11 @@ export async function buildSite(outdir = join(siteDir, 'dist')): Promise<BuildRe
     `This page includes the following third-party software.\n\n${notices.join(`\n${'-'.repeat(72)}\n\n`)}`,
   );
   copyFileSync(join(siteDir, '..', 'LICENSE'), join(outdir, 'LICENSE.txt'));
+  // The notation reference for language models, at the conventional address.
+  copyFileSync(
+    join(siteDir, '..', 'skills', 'live-sequence-charts', 'reference.md'),
+    join(outdir, 'llms.txt'),
+  );
   for (const file of ['index.html', 'styles.css']) {
     copyFileSync(join(siteDir, 'src', file), join(outdir, file));
   }

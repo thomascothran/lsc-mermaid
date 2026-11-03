@@ -75,6 +75,49 @@ describe('mermaid-lsc command line', () => {
     expect(t.out).toEqual([]);
   });
 
+  it('checks charts without drawing them with --check', async () => {
+    const good = ['lsc-alpha existential', '  a ->> b: ping'].join('\n');
+    const t = io({ 'good.lsc': good, 'ping.lsc': CHART });
+    expect(await runCli(['--check', 'good.lsc', 'ping.lsc'], t.io)).toBe(0);
+    expect(t.out.join('')).toBe('good.lsc: ok\nping.lsc: 0 errors, 1 warning\n');
+    expect(t.err.join('')).toMatch(/^ping\.lsc:1:1: warning V11: [^\n]*\n$/);
+  });
+
+  it('fails --check on any error, blocking or not, and counts lines after front matter', async () => {
+    const nonBlocking =
+      '---\ntitle: x\n---\nlsc-alpha universal\n  activation on a ->> b: go\n  hot progress b';
+    const t = io({ 'v2.lsc': nonBlocking }, 'lsc-alpha existential\n  a -->> b: reply');
+    expect(await runCli(['--check', 'v2.lsc', '-'], t.io)).toBe(1);
+    expect(t.err.join('')).toMatch(/^v2\.lsc:6:\d+: error V2: /m);
+    expect(t.err.join('')).toMatch(/^<stdin>:2:5: error V23: /m);
+    expect(t.out.join('')).toBe('v2.lsc: 1 error, 0 warnings\n<stdin>: 1 error, 0 warnings\n');
+  });
+
+  it('checks the lsc and mermaid lsc blocks of Markdown files, with file line numbers', async () => {
+    const md = [
+      '# Rules',
+      '```lsc',
+      'lsc-alpha universal',
+      '  activation on a ->> b: go',
+      '  b -->> a: done',
+      '```',
+      '```mermaid',
+      'sequenceDiagram',
+      '  a->>b: not ours',
+      '```',
+      '~~~mermaid',
+      'lsc-alpha existential',
+      '  a ->> b: fine',
+      '~~~',
+    ].join('\n');
+    const t = io({ 'doc.md': md, 'empty.md': '# Nothing\n' });
+    expect(await runCli(['--check', 'doc.md', 'empty.md'], t.io)).toBe(1);
+    expect(t.err.join('')).toMatch(/^doc\.md:5:5: error V23: /);
+    expect(t.out.join('')).toBe(
+      'doc.md: 2 charts, 1 error, 0 warnings\nempty.md: no charts found (expected ```lsc blocks)\n',
+    );
+  });
+
   it('refuses other diagram types', async () => {
     const t = io({ 'seq.mmd': 'sequenceDiagram\n  a->>b: hi' });
     expect(await runCli(['seq.mmd'], t.io)).toBe(1);

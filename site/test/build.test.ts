@@ -61,6 +61,7 @@ describe('buildSite', () => {
         'mermaid.min.js',
         'LICENSE.txt',
         'THIRD-PARTY-NOTICES.txt',
+        'llms.txt',
       ]),
     );
   });
