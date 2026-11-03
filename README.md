@@ -181,7 +181,8 @@ pavlov's model checker can check a behavioural program against the chart. See it
 
 ## Development
 
-Requires Node 20+ and pnpm. On NixOS, `nix shell nixpkgs#pnpm` provides pnpm.
+Requires Node 20+ and pnpm. Without pnpm installed, as on NixOS, run each command as
+`nix shell nixpkgs#pnpm -c pnpm …`, or first `alias pnpm='nix shell nixpkgs#pnpm -c pnpm'`.
 
 ```sh
 pnpm install
