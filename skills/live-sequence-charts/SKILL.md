@@ -20,10 +20,11 @@ text, so the person and the agent can both edit the same chart.
 3. **Check it** before showing it:
 
    ````sh
-   mermaid-lsc --check chart.lsc      # or a Markdown file: checks its ```lsc blocks
+   npx -y mermaid-lsc@latest --check chart.lsc   # or a Markdown file: checks its ```lsc blocks
    ````
 
-   If `mermaid-lsc` isn't installed, try `npx -y mermaid-lsc --check chart.lsc`. Fix every
+   This needs Node 20 or later and access to the npm registry. Where `mermaid-lsc` is installed
+   (as in its own repository), `mermaid-lsc --check chart.lsc` is enough. Fix every
    error, and every warning the chart isn't meant to show; reference.md section 8 lists the
    codes and their usual fixes. If you can't run the checker, say that the chart is unchecked.
 
@@ -31,9 +32,10 @@ text, so the person and the agent can both edit the same chart.
    rule: "Whenever the car receives `setDest`, it must send `departReq` …; after `arrivReq`,
    the acknowledgement may never come." The person confirms the reading, not the syntax, so
    the reading is where misunderstandings show up.
-5. **Let them see it drawn.** Point to a rendering: an SVG from `mermaid-lsc chart.lsc -o
-chart.svg`, or a playground link (reference.md section 10). For someone new to LSCs, link
-   the tutorial lesson for the construct that matters.
+5. **Let them see it drawn.** Point to a rendering: an SVG from
+   `npx -y mermaid-lsc@latest chart.lsc -o chart.svg`, or a playground link (reference.md
+   section 10). For someone new to LSCs, link the tutorial lesson for the construct that
+   matters.
 6. **When the person edits a chart,** re-check it, then describe how its meaning changed rather
    than how its text changed.
 

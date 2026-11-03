@@ -389,11 +389,12 @@ lsc-alpha universal
 
 ## 10. Checking and showing charts
 
-- **Check** every chart before showing it: `mermaid-lsc --check chart.lsc`, or
-  `mermaid-lsc --check notes.md` for the ` ```lsc ` blocks of a Markdown file. It prints
-  `file: ok` or the diagnostics, and exits with 1 if any chart has an error. Fix errors, and fix
-  warnings unless the chart is meant to show them.
-- **Draw** a chart to SVG: `mermaid-lsc chart.lsc -o chart.svg`.
+- **Check** every chart before showing it: `npx -y mermaid-lsc@latest --check chart.lsc`, or
+  `npx -y mermaid-lsc@latest --check notes.md` for the ` ```lsc ` blocks of a Markdown file. It
+  prints `file: ok` or the diagnostics, and exits with 1 if any chart has an error. Fix errors,
+  and fix warnings unless the chart is meant to show them. It needs Node 20 or later. Where the
+  package is installed, `mermaid-lsc --check …` is enough.
+- **Draw** a chart to SVG: `npx -y mermaid-lsc@latest chart.lsc -o chart.svg`.
 - **Open** it in the browser playground, where the reader can edit it:
   `https://thomascothran.github.io/lsc-mermaid/#t=` followed by the chart text as UTF-8,
   base64url-encoded. Without a way to encode it, give the chart text and the link

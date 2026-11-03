@@ -6,8 +6,11 @@ Live Sequence Charts (Damm & Harel, 2001) as a Mermaid diagram type. The design 
 Status: the model library (`lsc-model`) reads the full notation and builds the semantic model,
 with validation, unfoldings, the partial order and JSON. The Mermaid plugin (`mermaid-lsc`)
 renders every element of the notation, and its command-line renderer writes SVG. Basic charts
-run as monitors in [pavlov](https://github.com/thomascothran/pavlov) through `lsc-pavlov`. No
-package is published yet.
+run as monitors in [pavlov](https://github.com/thomascothran/pavlov) through `lsc-pavlov`.
+[`lsc-model`](https://www.npmjs.com/package/lsc-model) and
+[`mermaid-lsc`](https://www.npmjs.com/package/mermaid-lsc) are on npm, so
+`npx mermaid-lsc chart.lsc -o chart.svg` works without a checkout. `lsc-pavlov` is not
+published.
 
 ## Packages
 
@@ -190,6 +193,18 @@ pnpm site               # the playground only, into site/dist/
 
 Tests import workspace packages from their TypeScript sources through the `lsc-source`
 export condition, so no build is needed before testing.
+
+**Releasing.** `lsc-model` and `mermaid-lsc` share a version number. Bump both `version`
+fields, then publish from a clean checkout of `master`:
+
+```sh
+pnpm check && pnpm build
+npm login                         # once per machine
+pnpm -r publish --access public   # lsc-model first; workspace:* becomes the exact version
+```
+
+`pnpm -r publish` skips private packages and versions already on npm. Use pnpm rather than
+`npm publish`, which would publish the `workspace:*` dependency as it is.
 
 **Automata.** The skeleton automata of the supported fixtures are committed in
 `packages/lsc-pavlov/test/resources/automata/`, where the Clojure tests read them. After an

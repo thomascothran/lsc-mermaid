@@ -1,9 +1,27 @@
 {
   "name": "lsc-model",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Parser, semantic model and validator for Live Sequence Charts",
+  "keywords": [
+    "live-sequence-charts",
+    "lsc",
+    "sequence-diagram",
+    "parser",
+    "validator"
+  ],
+  "homepage": "https://thomascothran.github.io/lsc-mermaid/",
+  "bugs": "https://github.com/thomascothran/lsc-mermaid/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thomascothran/lsc-mermaid.git",
+    "directory": "packages/lsc-model"
+  },
   "license": "MIT",
+  "author": "Thomas Cothran <tmcothran@gmail.com>",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "sideEffects": false,
   "exports": {
     ".": {

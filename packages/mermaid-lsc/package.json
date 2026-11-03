@@ -1,9 +1,27 @@
 {
   "name": "mermaid-lsc",
-  "version": "0.0.0",
-  "description": "Live Sequence Charts as a Mermaid external diagram",
+  "version": "0.1.0",
+  "description": "Live Sequence Charts as a Mermaid external diagram, with a command-line renderer and checker",
+  "keywords": [
+    "mermaid",
+    "mermaid-plugin",
+    "live-sequence-charts",
+    "lsc",
+    "sequence-diagram"
+  ],
+  "homepage": "https://thomascothran.github.io/lsc-mermaid/",
+  "bugs": "https://github.com/thomascothran/lsc-mermaid/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thomascothran/lsc-mermaid.git",
+    "directory": "packages/mermaid-lsc"
+  },
   "license": "MIT",
+  "author": "Thomas Cothran <tmcothran@gmail.com>",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "sideEffects": false,
   "exports": {
     ".": {
