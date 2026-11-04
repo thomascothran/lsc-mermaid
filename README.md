@@ -215,11 +215,12 @@ export condition, so no build is needed before testing.
 fields, then publish from a clean checkout of `master`:
 
 ```sh
-pnpm check && pnpm build
+pnpm check
 npm login                         # once per machine
 pnpm -r publish --access public   # lsc-model first; workspace:* becomes the exact version
 ```
 
+Each package's `prepack` script builds it, so what is published always matches the source.
 `pnpm -r publish` skips private packages and versions already on npm. Use pnpm rather than
 `npm publish`, which would publish the `workspace:*` dependency as it is.
 

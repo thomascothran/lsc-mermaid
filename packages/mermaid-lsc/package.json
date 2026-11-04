@@ -1,6 +1,6 @@
 {
   "name": "mermaid-lsc",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Live Sequence Charts as a Mermaid external diagram, with a command-line renderer and checker",
   "keywords": [
     "mermaid",
@@ -45,6 +45,7 @@
   ],
   "scripts": {
     "build": "tsc -b && pnpm bundle",
+    "prepack": "pnpm run build",
     "bundle": "esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:mermaid --conditions=lsc-source --minify --sourcemap --legal-comments=linked --outfile=dist/mermaid-lsc.esm.mjs"
   },
   "dependencies": {
