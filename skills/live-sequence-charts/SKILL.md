@@ -48,6 +48,34 @@ text, so the person and the agent can both edit the same chart.
 6. **When the person edits a chart,** re-check it, then describe how its meaning changed rather
    than how its text changed.
 
+## Charts on GitHub
+
+GitHub draws ` ```mermaid ` blocks with its own built-in Mermaid, which can't load the
+`lsc-alpha` diagram type, so an LSC never renders live in issues, pull requests, wikis or
+READMEs. Post the drawing instead, and keep the text with it:
+
+1. Draw it: `npx -y mermaid-lsc@latest chart.lsc -o chart.svg`. In a wiki (its own git
+   repository, `<repo>.wiki.git`) or a repository, commit the SVG and embed it with
+   `![Title](chart.svg)`. In an issue or comment, the person attaches the file by dragging it
+   in; if GitHub refuses the SVG, convert it to PNG first.
+2. Add the playground link from step 5 so readers can open and edit the chart.
+3. Put the chart text in a collapsed block so it can be copied and changed:
+
+   ````markdown
+   ![Car departure](chart.svg)
+
+   [Open in the playground](https://thomascothran.github.io/lsc-mermaid/#lsc=...)
+
+   <details><summary>LSC source</summary>
+
+   ```lsc
+   lsc-alpha universal
+     ...
+   ```
+
+   </details>
+   ````
+
 ## Reading a chart someone gives you
 
 Check it first, and report diagnostics before reasoning from it. Then read it as section 4 of
