@@ -64,13 +64,16 @@ READMEs. Post the drawing instead, and keep the text with it:
    ````markdown
    ![Car departure](chart.svg)
 
-   [Open in the playground](https://thomascothran.github.io/lsc-mermaid/#lsc=...)
+   [Open in the playground](https://thomascothran.github.io/lsc-mermaid/#z=RYxBCsMwDATveYU-kA_kEAjtoef-YHEWaiqcVFb8_gicUNBlZ3alNY3Q_QM5Sm60Ch1EPLtSHjBZucP8MAZF8tzgeSsSx9JknGdJsEkq_cnqUYp44xfKqgzbn7z56_7i_3X3S_oOJw)
 
    <details><summary>LSC source</summary>
 
    ```lsc
    lsc-alpha universal
-     ...
+     title Car departure
+     activation on env ->> car: setDest
+     car ->> carHandler: departReq
+     carHandler ->> car: departAck
    ```
 
    </details>
