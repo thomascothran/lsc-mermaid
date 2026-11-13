@@ -162,8 +162,32 @@ without code, the reference shows how to write a `#lsc=` link by hand.
 requirement, the statements, their meaning, the habits from Mermaid sequence diagrams that don't
 carry over, and every diagnostic code with its usual fix. The site publishes it as `llms.txt`.
 
-Install the skill by copying the folder into the agent's skills folder (for example
-`~/.claude/skills/`), or by uploading it as a zip in claude.ai. The site's tests check every chart
+### Without installing anything
+
+Any assistant that can read a web page can use the reference directly, in Claude, ChatGPT or
+elsewhere. Paste a prompt such as:
+
+```text
+Read https://thomascothran.github.io/lsc-mermaid/llms.txt, then write my requirement below as a
+Live Sequence Chart. Show the chart text, say in plain words what it means, and give a
+playground link that opens it.
+```
+
+The reference shows how to write a playground link by hand, so this works without running code.
+It is the easiest way to show someone the notation: send them the prompt.
+
+### Installing the skill in a coding agent
+
+The [`skills`](https://skills.sh) installer copies the skill into Claude Code, Codex, Cursor,
+GitHub Copilot, Gemini CLI and other agents that read Agent Skills:
+
+```sh
+npx skills add thomascothran/lsc-mermaid                    # asks which agents
+npx skills add thomascothran/lsc-mermaid -g -a claude-code  # Claude Code, every project
+```
+
+Without it, copy the folder into the agent's skills folder (for example `~/.claude/skills/`), or
+upload it as a zip in claude.ai. The site's tests check every chart
 in the skill and its hand-written links, check that `scripts/link.mjs` writes the same links as
 `mermaid-lsc --link` and that the playground opens them, and fail when the reference misses a
 diagnostic code, a word of the notation or a tutorial lesson it links to.
